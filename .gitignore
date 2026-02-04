@@ -1,0 +1,44 @@
+# ======================
+# Node / JavaScript
+# ======================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build / Dist
+dist/
+build/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# ======================
+# Editor / IDE
+# ======================
+.vscode/
+!.vscode/extensions.json
+
+.idea/
+*.swp
+
+# ======================
+# OS files
+# ======================
+.DS_Store
+Thumbs.db
+
+# ======================
+# WebGL / Assets
+# ======================
+*.log
+*.tmp
+.cache/
+
+# Shader backups
+*.vert~
+*.frag~

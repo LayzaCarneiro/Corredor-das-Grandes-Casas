@@ -1,0 +1,25 @@
+<html style="--vsc-domain: &quot;www.lia.ufc.br&quot;;"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Hello CG</title>
+
+<script src="./Hello CG_files/webgl.js"></script>
+
+<script id="vertex-shader" type="notjs">
+attribute vec4 position;
+
+void main(){
+    gl_Position = position;
+}
+</script>
+
+<script id="frag-shader" type="notjs">
+precision mediump float;
+void main(){
+    gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
+}
+</script></head>
+
+<body onload="init()">
+
+<canvas id="glcanvas1" width="400" height="300"></canvas>
+
+</body></html>
