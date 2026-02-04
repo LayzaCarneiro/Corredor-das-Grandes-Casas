@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <title>Hello CG</title>
+
+    <!-- Biblioteca matemática -->
+    <script src="math.js"></script>
+
+    <!-- Código WebGL -->
+    <script src="webgl.js"></script>
+
+    <!-- ===== Vertex Shader ===== -->
+    <script id="vertex-shader" type="notjs">
+        attribute vec4 position;
+        attribute vec2 texCoord;
+        attribute vec3 normal;
+
+        uniform mat4 transfproj;
+        uniform mat4 transf;
+
+        uniform vec3 lightpos;
+        uniform vec3 campos;
+
+        varying vec2 v_texCoord;
+        varying vec3 v_normal;
+        varying vec3 pointToLight;
+        varying vec3 pointToCam;
+
+        void main() {
+            pointToLight = lightpos - position.xyz;
+            pointToCam   = campos - position.xyz;
+
+            v_normal = (transf * vec4(normal, 1.0)).xyz;
+
+            v_texCoord = texCoord;
+            gl_Position = transfproj * position;
+        }
+    </script>
+
+    <!-- ===== Fragment Shader ===== -->
+    <script id="frag-shader" type="notjs">
+        precision mediump float;
+
+        uniform sampler2D tex;
+
+        uniform vec3 lightDirection;
+        uniform vec3 lightColor;
+
+        varying vec2 v_texCoord;
+        varying vec3 v_normal;
+        varying vec3 pointToLight;
+        varying vec3 pointToCam;
+
+        void main() {
+            vec3 pToLight = normalize(pointToLight);
+            vec3 pToCam   = normalize(pointToCam);
+            vec3 halfVec  = normalize(pToCam + pToLight);
+
+            vec3 n = normalize(v_normal);
+            vec3 ld = normalize(-lightDirection);
+
+            float lightd = max(dot(n, ld), 0.0);
+            float lightp = max(dot(n, pToLight), 0.0);
+            float lighte = max(dot(n, halfVec), 0.0);
+
+            vec3 texColor = texture2D(tex, v_texCoord).rgb;
+
+            vec3 color = 0.2 * lightColor * texColor;              // ambiente
+            color += 0.2 * lightColor * lightd * texColor;         // direcional
+            color += 0.5 * lightColor * lightp * texColor;         // pontual
+            color += lightColor * pow(lighte, 500.0) * texColor;   // especular
+
+            gl_FragColor = vec4(color, texture2D(tex, v_texCoord).a);
+        }
+    </script>
+</head>
+
+<body onload="init()">
+    <canvas id="glcanvas1" width="640" height="640"></canvas>
+</body>
+</html>

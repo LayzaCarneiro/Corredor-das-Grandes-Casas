@@ -1,40 +1,44 @@
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<title>Hello CG</title>
+    <meta charset="utf-8">
+    <title>Hello CG</title>
+
+    <!-- Biblioteca de matemática (matrizes, vetores) -->
+    <script src="math.js"></script>
+
+    <!-- Seu código WebGL -->
+    <script src="webgl.js"></script>
+
+    <!-- Vertex Shader -->
+    <script id="vertex-shader" type="notjs">
+        attribute vec4 position;
+        attribute vec2 texCoord;
+
+        uniform mat4 transf;
+
+        varying vec2 v_texCoord;
+
+        void main() {
+            v_texCoord = texCoord;
+            gl_Position = transf * position;
+        }
+    </script>
+
+    <!-- Fragment Shader -->
+    <script id="frag-shader" type="notjs">
+        precision mediump float;
+
+        uniform sampler2D tex;
+        varying vec2 v_texCoord;
+
+        void main() {
+            gl_FragColor = texture2D(tex, v_texCoord);
+        }
+    </script>
 </head>
-<script src="math.js"></script>
-<script src="./Hello CG_files/webgl.js"></script>
-<script id="vertex-shader" type="notjs">
-attribute vec4 position;
-attribute vec2 texCoord;
-uniform mat4 transf;
-
-varying vec2 v_texCoord;
-
-void main()
-{
-	v_texCoord = texCoord;
-	gl_Position = transf*position;
-}
-</script>
-
-<script id="frag-shader" type="notjs">
-precision mediump float;
-
-uniform sampler2D tex;
-
-varying vec2 v_texCoord;
-
-void main()
-{
-    gl_FragColor = texture2D(tex, v_texCoord);
-}
-</script>
 
 <body onload="init()">
-
-<canvas id="glcanvas1" width="400" height="300"></canvas>
-
+    <canvas id="glcanvas1" width="400" height="300"></canvas>
 </body>
-
 </html>
