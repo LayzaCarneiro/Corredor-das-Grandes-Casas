@@ -1,0 +1,27 @@
+# Como adicionar música ao projeto
+
+## Passo a passo rápido:
+
+1. **Baixe ou coloque seu arquivo de áudio MP3 ou M4A na pasta `audio/`**
+
+2. **Edite o arquivo `src/main.js` e descomente a linha:**
+   ```javascript
+   audioManager.loadAndPlay('audio/background-music.mp3', 0.3);
+   ```
+
+3. **Ajuste o nome do arquivo e o volume conforme necessário**
+
+## Exemplo:
+
+Se você tem um arquivo chamado `epic-soundtrack.mp3`, use:
+```javascript
+audioManager.loadAndPlay('audio/epic-soundtrack.mp3', 0.5);
+```
+
+O segundo número (0.5) é o volume de 0.0 (mudo) a 1.0 (máximo).
+
+## Controles:
+
+- **Tecla M** - Liga/Desliga a música
+
+Pronto! A música tocará em loop infinito. 🎵

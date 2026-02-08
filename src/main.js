@@ -2,6 +2,7 @@ import { perspective } from './math.js';
 import { vsSource, fsSource, createProgram } from './shaders.js';
 import { Camera } from './camera.js';
 import { loadOBJ } from './obj.js';
+import { audioManager } from './audio.js';
 
 const canvas = document.getElementById("glCanvas");
 canvas.width = window.innerWidth;
@@ -148,6 +149,17 @@ async function loadOBJModel(url) {
 // Descomente e ajuste o caminho quando tiver um arquivo .obj
 // loadOBJModel('models/teapot.obj');
 // loadOBJModel('models/suzanne.obj');
+
+// Iniciar música de fundo em loop (Web Audio API - não é biblioteca gráfica)
+audioManager.loadAndPlay('audio/YTDown.com_YouTube_Game-of-Thrones-Tema-de-Abertura-Oppenin_Media_8wYhc8xpBkc_001_1080p.mp4', 0.4);
+
+// Controles de áudio (opcional - pode remover se não quiser)
+// Tecla M para mutar/desmutar
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'm' || e.key === 'M') {
+    audioManager.toggle();
+  }
+});
 
 function render() {
   camera.updatePosition();
