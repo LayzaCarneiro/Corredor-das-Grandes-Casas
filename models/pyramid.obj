@@ -1,0 +1,20 @@
+# Pirâmide simples para teste do leitor OBJ
+# 5 vértices: 4 da base + 1 do topo
+
+# Vértices
+v -0.5 0.0 -0.5   # 1 - base frente esquerda
+v  0.5 0.0 -0.5   # 2 - base frente direita
+v  0.5 0.0  0.5   # 3 - base trás direita
+v -0.5 0.0  0.5   # 4 - base trás esquerda
+v  0.0 1.0  0.0   # 5 - topo
+
+# Faces (triangulares)
+# Base
+f 1 3 2
+f 1 4 3
+
+# Lados
+f 1 2 5
+f 2 3 5
+f 3 4 5
+f 4 1 5
