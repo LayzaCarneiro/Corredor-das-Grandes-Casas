@@ -57,8 +57,20 @@ struct PointLight {
     int enabled;
 };
 
+struct SpotLight {
+  vec3 position;
+  vec3 direction;     // direção PARA ONDE a luz aponta (mundo)
+  vec3 color;
+  float intensity;
+  vec3 attenuation;   // (kc, kl, kq)
+  float innerCutoff;  // cos(angulo interno)
+  float outerCutoff;  // cos(angulo externo)
+  int enabled;
+};
+
 uniform DirectionalLight uDirLight;
 uniform PointLight uPointLight;
+uniform SpotLight uSpotLight;
 
 vec3 applyDirectionalLight(vec3 n, vec3 v) {
     if (uDirLight.enabled == 0) return vec3(0.0);
@@ -98,6 +110,35 @@ vec3 applyPointLight(vec3 n, vec3 v) {
     return diffuse + specular;
 }
 
+vec3 applySpotLight(vec3 n, vec3 v) {
+  if (uSpotLight.enabled == 0) return vec3(0.0);
+
+  vec3 toLight = uSpotLight.position - vWorldPos;
+  float dist = length(toLight);
+  vec3 l = toLight / max(dist, 1e-6);
+
+  // Cone: só ilumina se o fragmento estiver à frente do cone
+  vec3 spotDir = normalize(uSpotLight.direction);
+  float theta = dot(normalize(-l), spotDir); // 1.0 quando alinhado
+  float eps = max(uSpotLight.innerCutoff - uSpotLight.outerCutoff, 1e-6);
+  float cone = clamp((theta - uSpotLight.outerCutoff) / eps, 0.0, 1.0);
+  if (cone <= 0.0) return vec3(0.0);
+
+  float att = 1.0 / (uSpotLight.attenuation.x +
+            uSpotLight.attenuation.y * dist +
+            uSpotLight.attenuation.z * dist * dist);
+
+  float ndotl = max(dot(n, l), 0.0);
+
+  vec3 h = normalize(v + l);
+  float spec = (ndotl > 0.0) ? pow(max(dot(n, h), 0.0), uShininess) : 0.0;
+
+  vec3 lightColor = uSpotLight.color * uSpotLight.intensity * att * cone;
+  vec3 diffuse = uKd * ndotl * lightColor * uBaseColor;
+  vec3 specular = uKs * spec * lightColor;
+  return diffuse + specular;
+}
+
 void main() {
     vec3 n = normalize(vWorldNormal);
     vec3 v = normalize(uCameraPos - vWorldPos);
@@ -107,6 +148,7 @@ void main() {
 
     color += applyDirectionalLight(n, v);
     color += applyPointLight(n, v);
+    color += applySpotLight(n, v);
 
     fragColor = vec4(color, 1.0);
 }
@@ -147,6 +189,16 @@ export function getPhongLocations(gl, program) {
     uPointLight_intensity: gl.getUniformLocation(program, 'uPointLight.intensity'),
     uPointLight_attenuation: gl.getUniformLocation(program, 'uPointLight.attenuation'),
     uPointLight_enabled: gl.getUniformLocation(program, 'uPointLight.enabled'),
+
+    // Spot (tocha)
+    uSpotLight_position: gl.getUniformLocation(program, 'uSpotLight.position'),
+    uSpotLight_direction: gl.getUniformLocation(program, 'uSpotLight.direction'),
+    uSpotLight_color: gl.getUniformLocation(program, 'uSpotLight.color'),
+    uSpotLight_intensity: gl.getUniformLocation(program, 'uSpotLight.intensity'),
+    uSpotLight_attenuation: gl.getUniformLocation(program, 'uSpotLight.attenuation'),
+    uSpotLight_innerCutoff: gl.getUniformLocation(program, 'uSpotLight.innerCutoff'),
+    uSpotLight_outerCutoff: gl.getUniformLocation(program, 'uSpotLight.outerCutoff'),
+    uSpotLight_enabled: gl.getUniformLocation(program, 'uSpotLight.enabled'),
   };
 }
 
@@ -192,6 +244,20 @@ export function setPhongPointLight(gl, locs, light) {
   gl.uniform3fv(locs.uPointLight_color, light.color);
   gl.uniform1f(locs.uPointLight_intensity, light.intensity ?? 1.0);
   gl.uniform3fv(locs.uPointLight_attenuation, light.attenuation ?? [1.0, 0.09, 0.032]);
+}
+
+export function setPhongSpotLight(gl, locs, light) {
+  const enabled = light && (light.enabled ?? true);
+  gl.uniform1i(locs.uSpotLight_enabled, enabled ? 1 : 0);
+  if (!enabled) return;
+
+  gl.uniform3fv(locs.uSpotLight_position, light.position);
+  gl.uniform3fv(locs.uSpotLight_direction, light.direction);
+  gl.uniform3fv(locs.uSpotLight_color, light.color);
+  gl.uniform1f(locs.uSpotLight_intensity, light.intensity ?? 1.0);
+  gl.uniform3fv(locs.uSpotLight_attenuation, light.attenuation ?? [1.0, 0.14, 0.07]);
+  gl.uniform1f(locs.uSpotLight_innerCutoff, light.innerCutoff ?? Math.cos((12 * Math.PI) / 180));
+  gl.uniform1f(locs.uSpotLight_outerCutoff, light.outerCutoff ?? Math.cos((20 * Math.PI) / 180));
 }
 
 // Computa normal matrix = transpose(inverse(mat3(model))) em ordem column-major.

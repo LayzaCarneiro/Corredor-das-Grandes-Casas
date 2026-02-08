@@ -7,8 +7,9 @@ import {
   setPhongCamera,
   setPhongAmbient,
   setPhongMaterial,
-  setPhongPointLight,
   setPhongDirectionalLight,
+  setPhongPointLight,
+  setPhongSpotLight,
   normalMatrixFromMat4,
 } from './phong.js';
 import { createCorridorRoomScenario, createVAO } from './scenario.js';
@@ -86,13 +87,14 @@ const IDENTITY_MODEL = new Float32Array([
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.1, 0.1, 0.1, 1.0);
 
-function getMovingLightPosition(timeMs) {
-  const t = timeMs * 0.001;
-  // Passeia do corredor para a sala e oscila em X
-  const zBase = 2 + (Math.sin(t * 0.35) * 0.5 + 0.5) * (scenario.params.corridorLength + scenario.params.roomSize - 4);
-  const x = Math.sin(t * 0.9) * 2.0;
-  const y = scenario.params.wallHeight - 0.6;
-  return [x, y, zBase];
+function getCameraForward(camera) {
+  const yawRad = camera.yaw * Math.PI / 180;
+  const pitchRad = camera.pitch * Math.PI / 180;
+  const fx = Math.cos(yawRad) * Math.cos(pitchRad);
+  const fy = Math.sin(pitchRad);
+  const fz = Math.sin(yawRad) * Math.cos(pitchRad);
+  const len = Math.hypot(fx, fy, fz) || 1;
+  return [fx / len, fy / len, fz / len];
 }
 
 let lastTime = 0;
@@ -112,17 +114,43 @@ function render(time = 0) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Limpa o frame
 
   const view = camera.getViewMatrix();
-  const lightPos = getMovingLightPosition(time);
+  // Tocha: segue o jogador e ilumina só a área à frente.
+  // Direção vem do último movimento; só muda quando o jogador efetivamente passa a andar no sentido oposto.
+  const dirXZ = camera.lastMoveDir;
+  // Inclina levemente pra baixo pra pegar o chão
+  const torchDir = (() => {
+    const x = dirXZ[0];
+    const y = -0.18;
+    const z = dirXZ[2];
+    const len = Math.hypot(x, y, z) || 1;
+    return [x / len, y / len, z / len];
+  })();
+  const torchPos = [
+    camera.position[0] + dirXZ[0] * 0.15,
+    camera.position[1] + 0.10,
+    camera.position[2] + dirXZ[2] * 0.15,
+  ];
 
-  setPhongAmbient(gl, locs, [0.10, 0.10, 0.12]);
+  // Ambiente baixo: fora do cone fica escuro
+  setPhongAmbient(gl, locs, [0.02, 0.02, 0.025]);
   setPhongCamera(gl, locs, camera.position);
+
+  // Desliga as outras luzes para não iluminar atrás.
   setPhongDirectionalLight(gl, locs, { enabled: false });
-  setPhongPointLight(gl, locs, {
-    position: lightPos,
-    color: [1.0, 0.95, 0.85],
-    intensity: 1.5,
-    attenuation: [1.0, 0.08, 0.02],
+  setPhongPointLight(gl, locs, { enabled: false });
+
+  // SpotLight (tocha): cone com borda suave.
+  // inner/outer são cos(ângulo), então inner > outer.
+  setPhongSpotLight(gl, locs, {
     enabled: true,
+    position: torchPos,
+    direction: torchDir,
+    color: [1.0, 0.98, 0.92],
+    intensity: 3.2,
+    // cai bem rápido com distância (não ilumina o corredor todo)
+    attenuation: [1.0, 0.35, 0.25],
+    innerCutoff: Math.cos((11 * Math.PI) / 180),
+    outerCutoff: Math.cos((20 * Math.PI) / 180),
   });
 
   // Matrizes comuns (model = identidade)
