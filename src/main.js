@@ -87,15 +87,9 @@ const IDENTITY_MODEL = new Float32Array([
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.1, 0.1, 0.1, 1.0);
 
-function getCameraForward(camera) {
-  const yawRad = camera.yaw * Math.PI / 180;
-  const pitchRad = camera.pitch * Math.PI / 180;
-  const fx = Math.cos(yawRad) * Math.cos(pitchRad);
-  const fy = Math.sin(pitchRad);
-  const fz = Math.sin(yawRad) * Math.cos(pitchRad);
-  const len = Math.hypot(fx, fy, fz) || 1;
-  return [fx / len, fy / len, fz / len];
-}
+// FOV mais confortável para FPS/corredor
+const FOV_DEG = 75;
+const FOV_RAD = (FOV_DEG * Math.PI) / 180;
 
 let lastTime = 0;
 function render(time = 0) {
@@ -104,7 +98,7 @@ function render(time = 0) {
   camera.updatePosition(dt);
 
   const projection = perspective(
-    Math.PI / 4,
+    FOV_RAD,
     canvas.width / canvas.height,
     0.1,
     800
@@ -114,44 +108,32 @@ function render(time = 0) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Limpa o frame
 
   const view = camera.getViewMatrix();
-  // Tocha: segue o jogador e ilumina só a área à frente.
-  // Direção vem do último movimento; só muda quando o jogador efetivamente passa a andar no sentido oposto.
-  const dirXZ = camera.lastMoveDir;
-  // Inclina levemente pra baixo pra pegar o chão
-  const torchDir = (() => {
-    const x = dirXZ[0];
-    const y = -0.18;
-    const z = dirXZ[2];
-    const len = Math.hypot(x, y, z) || 1;
-    return [x / len, y / len, z / len];
-  })();
-  const torchPos = [
-    camera.position[0] + dirXZ[0] * 0.15,
+  // Luz na "cabeça" do personagem (campo de luz ao redor, curto alcance)
+  const headLightPos = [
+    camera.position[0],
     camera.position[1] + 0.10,
-    camera.position[2] + dirXZ[2] * 0.15,
+    camera.position[2],
   ];
 
-  // Ambiente baixo: fora do cone fica escuro
-  setPhongAmbient(gl, locs, [0.02, 0.02, 0.025]);
+  // Um pouco mais de ambiente pra não ficar "preto" longe, sem lavar o cenário
+  setPhongAmbient(gl, locs, [0.03, 0.03, 0.035]);
   setPhongCamera(gl, locs, camera.position);
 
-  // Desliga as outras luzes para não iluminar atrás.
+  // Sem luz direcional (evita iluminar o cenário inteiro sem atenuação)
   setPhongDirectionalLight(gl, locs, { enabled: false });
-  setPhongPointLight(gl, locs, { enabled: false });
 
-  // SpotLight (tocha): cone com borda suave.
-  // inner/outer são cos(ângulo), então inner > outer.
-  setPhongSpotLight(gl, locs, {
+  // Luz pontual na cabeça: ilumina em 360º perto do jogador, mas cai rápido.
+  setPhongPointLight(gl, locs, {
     enabled: true,
-    position: torchPos,
-    direction: torchDir,
+    position: headLightPos,
     color: [1.0, 0.98, 0.92],
-    intensity: 3.2,
-    // cai bem rápido com distância (não ilumina o corredor todo)
+    intensity: 3.8,
+    // Alcance curto/médio: ilumina perto do jogador e cai rápido
     attenuation: [1.0, 0.35, 0.25],
-    innerCutoff: Math.cos((11 * Math.PI) / 180),
-    outerCutoff: Math.cos((20 * Math.PI) / 180),
   });
+
+  // Garante que o spotlight não influencie (se estava ligado antes)
+  setPhongSpotLight(gl, locs, { enabled: false });
 
   // Matrizes comuns (model = identidade)
   setPhongMatrices(gl, locs, {
