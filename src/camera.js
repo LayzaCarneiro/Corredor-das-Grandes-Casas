@@ -1,13 +1,17 @@
 import { normalize, cross } from './math.js';
 
 export class Camera {
-  constructor(canvas) {
-    this.position = [0, 0, 3];
+  constructor(canvas, opts = {}) {
+    this.position = opts.position ?? [0, 0, 3];
     this.yaw = -90;
     this.pitch = 0;
     this.speed = 0.05;
     this.sensitivity = 0.1;
     this.keys = {};
+
+    // Colisão (opcional): (x, z, radius) => boolean (true = colide)
+    this.collisionFn = opts.collisionFn ?? null;
+    this.radius = opts.radius ?? 0.35;
 
     window.addEventListener("keydown", e => this.keys[e.key.toLowerCase()] = true);
     window.addEventListener("keyup", e => this.keys[e.key.toLowerCase()] = false);
@@ -26,10 +30,33 @@ export class Camera {
     const forward = [Math.cos(yawRad), 0, Math.sin(yawRad)];
     const right = [-Math.sin(yawRad), 0, Math.cos(yawRad)];
 
-    if (this.keys["w"]) this.position = this.position.map((v, i) => v + forward[i] * this.speed);
-    if (this.keys["s"]) this.position = this.position.map((v, i) => v - forward[i] * this.speed);
-    if (this.keys["a"]) this.position = this.position.map((v, i) => v - right[i] * this.speed);
-    if (this.keys["d"]) this.position = this.position.map((v, i) => v + right[i] * this.speed);
+    let dx = 0;
+    let dz = 0;
+    if (this.keys["w"]) { dx += forward[0] * this.speed; dz += forward[2] * this.speed; }
+    if (this.keys["s"]) { dx -= forward[0] * this.speed; dz -= forward[2] * this.speed; }
+    if (this.keys["a"]) { dx -= right[0] * this.speed; dz -= right[2] * this.speed; }
+    if (this.keys["d"]) { dx += right[0] * this.speed; dz += right[2] * this.speed; }
+
+    if (dx === 0 && dz === 0) return;
+
+    const [x, y, z] = this.position;
+
+    // Desliza nas paredes: testa eixo X e Z separadamente.
+    if (this.collisionFn) {
+      const nextX = x + dx;
+      const nextZ = z + dz;
+
+      let newX = x;
+      let newZ = z;
+
+      if (!this.collisionFn(nextX, z, this.radius)) newX = nextX;
+      if (!this.collisionFn(newX, nextZ, this.radius)) newZ = nextZ;
+
+      this.position = [newX, y, newZ];
+      return;
+    }
+
+    this.position = [x + dx, y, z + dz];
   }
 
   getViewMatrix() {
