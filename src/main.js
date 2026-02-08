@@ -28,11 +28,19 @@ const program = createPhongProgram(gl);
 gl.useProgram(program);
 const locs = getPhongLocations(gl, program);
 
-// Cenário corredor → sala
+// Cenário: corredor longo + sala pequena.
+// Meta: ~10s caminhando em linha reta até a sala.
+const MOVE_SPEED = 3.0; // unidades/segundo
+const TARGET_TIME_TO_ROOM = 10.0; // segundos
+const START_Z = 1.5;
+// Extra para deixar o corredor bem mais longo (aumenta o tempo até a sala)
+const CORRIDOR_EXTRA = 8.0;
+const corridorLength = Math.max(10, MOVE_SPEED * TARGET_TIME_TO_ROOM + START_Z + CORRIDOR_EXTRA);
+
 const scenario = createCorridorRoomScenario(gl, {
-  corridorWidth: 6,
-  corridorLength: 18,
-  roomSize: 22,
+  corridorWidth: 5,
+  corridorLength,
+  roomSize: 10,
   wallHeight: 4,
   doorWidth: 2.2,
   doorHeight: 3.0,
@@ -62,9 +70,10 @@ const parts = [
 ];
 
 const camera = new Camera(canvas, {
-  position: [0, 1.6, 1.5],
+  position: [0, 1.6, START_Z],
   collisionFn: scenario.checkCollision,
   radius: 0.35,
+  speed: MOVE_SPEED,
 });
 
 const IDENTITY_MODEL = new Float32Array([
@@ -86,14 +95,17 @@ function getMovingLightPosition(timeMs) {
   return [x, y, zBase];
 }
 
+let lastTime = 0;
 function render(time = 0) {
-  camera.updatePosition();
+  const dt = Math.min(0.05, Math.max(0, (time - lastTime) * 0.001));
+  lastTime = time;
+  camera.updatePosition(dt);
 
   const projection = perspective(
     Math.PI / 4,
     canvas.width / canvas.height,
     0.1,
-    200
+    800
   );
   
   gl.viewport(0, 0, canvas.width, canvas.height);

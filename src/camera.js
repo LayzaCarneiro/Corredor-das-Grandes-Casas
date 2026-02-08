@@ -5,7 +5,8 @@ export class Camera {
     this.position = opts.position ?? [0, 0, 3];
     this.yaw = -90;
     this.pitch = 0;
-    this.speed = 0.05;
+    // velocidade em unidades/segundo (independente de FPS)
+    this.speed = opts.speed ?? 3.0;
     this.sensitivity = 0.1;
     this.keys = {};
 
@@ -25,17 +26,21 @@ export class Camera {
     this.pitch = Math.max(-89, Math.min(89, this.pitch - e.movementY * this.sensitivity));
   }
 
-  updatePosition() {
+  updatePosition(deltaTimeSeconds) {
+    // fallback para chamadas antigas (aprox 60 FPS)
+    const dt = (deltaTimeSeconds === undefined || Number.isNaN(deltaTimeSeconds)) ? (1 / 60) : deltaTimeSeconds;
+
     const yawRad = this.yaw * Math.PI / 180;
     const forward = [Math.cos(yawRad), 0, Math.sin(yawRad)];
     const right = [-Math.sin(yawRad), 0, Math.cos(yawRad)];
 
     let dx = 0;
     let dz = 0;
-    if (this.keys["w"]) { dx += forward[0] * this.speed; dz += forward[2] * this.speed; }
-    if (this.keys["s"]) { dx -= forward[0] * this.speed; dz -= forward[2] * this.speed; }
-    if (this.keys["a"]) { dx -= right[0] * this.speed; dz -= right[2] * this.speed; }
-    if (this.keys["d"]) { dx += right[0] * this.speed; dz += right[2] * this.speed; }
+    const step = this.speed * dt;
+    if (this.keys["w"]) { dx += forward[0] * step; dz += forward[2] * step; }
+    if (this.keys["s"]) { dx -= forward[0] * step; dz -= forward[2] * step; }
+    if (this.keys["a"]) { dx -= right[0] * step; dz -= right[2] * step; }
+    if (this.keys["d"]) { dx += right[0] * step; dz += right[2] * step; }
 
     if (dx === 0 && dz === 0) return;
 
