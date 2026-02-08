@@ -1,0 +1,26 @@
+{
+  "name": "3d_tour_ride",
+  "version": "1.0.0",
+  "description": "Projeto acadêmico desenvolvido como **Passeio Virtual 3D**, utilizando **WebGL puro (sem Three.js ou bibliotecas gráficas de alto nível)**, com foco em computação gráfica, pipeline de renderização, câmera em primeira pessoa, iluminação e transformações geométricas.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LayzaCarneiro/virtual_tour.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/LayzaCarneiro/virtual_tour/issues"
+  },
+  "homepage": "https://github.com/LayzaCarneiro/virtual_tour#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.0",
+    "globals": "^17.3.0"
+  }
+}

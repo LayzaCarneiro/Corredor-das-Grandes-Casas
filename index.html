@@ -5,15 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>O Corredor do Trono de Ferro</title>
 
+<!-- Fonte medieval elegante -->
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
 
 <style>
+
+/* ============================= */
+/* RESET BÁSICO                  */
+/* ============================= */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* ============================= */
+/* CORPO DA PÁGINA               */
+/* ============================= */
 body {
     height: 100vh;
     background: radial-gradient(circle at center, #1a1a1f 0%, #0b0b0f 70%);
@@ -24,9 +32,12 @@ body {
     color: #e6d3a3;
     text-align: center;
     overflow: hidden;
+    position: relative;
 }
 
-/* Névoa animada */
+/* ============================= */
+/* NÉVOA ANIMADA                 */
+/* ============================= */
 body::before {
     content: "";
     position: absolute;
@@ -41,30 +52,39 @@ body::before {
     to { transform: translate(-25%, -25%) rotate(360deg); }
 }
 
-/* Container */
+/* ============================= */
+/* CONTAINER PRINCIPAL           */
+/* ============================= */
 .container {
     max-width: 700px;
     z-index: 2;
     animation: fadeIn 2s ease-in-out;
 }
 
-/* Título */
+/* ============================= */
+/* TÍTULO COM EFEITO DE BRILHO   */
+/* ============================= */
 h1 {
     font-size: 3.5rem;
     margin-bottom: 20px;
     letter-spacing: 4px;
+
     background: linear-gradient(90deg, #d4af37, #fff2b0, #d4af37);
+    background-size: 300% 100%; /* necessário para animar */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+
     animation: shine 4s infinite linear;
 }
 
 @keyframes shine {
-    0% { background-position: -200px; }
-    100% { background-position: 200px; }
+    0% { background-position: -200%; }
+    100% { background-position: 200%; }
 }
 
-/* Texto */
+/* ============================= */
+/* TEXTO DESCRITIVO              */
+/* ============================= */
 p {
     font-size: 1.2rem;
     margin-bottom: 30px;
@@ -72,7 +92,9 @@ p {
     line-height: 1.6;
 }
 
-/* Caixa de comandos */
+/* ============================= */
+/* CAIXA DE CONTROLES            */
+/* ============================= */
 .controls {
     background: rgba(255, 215, 0, 0.08);
     border: 1px solid rgba(212, 175, 55, 0.5);
@@ -91,7 +113,9 @@ p {
     font-size: 1rem;
 }
 
-/* Botão */
+/* ============================= */
+/* BOTÃO                         */
+/* ============================= */
 button {
     padding: 15px 45px;
     font-size: 1rem;
@@ -110,13 +134,17 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* Fade */
+/* ============================= */
+/* ANIMAÇÃO DE ENTRADA           */
+/* ============================= */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(30px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Vinheta */
+/* ============================= */
+/* VINHETA ESCURA                */
+/* ============================= */
 body::after {
     content: "";
     position: absolute;
@@ -125,6 +153,7 @@ body::after {
     background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.8));
     pointer-events: none;
 }
+
 </style>
 </head>
 
@@ -135,7 +164,7 @@ body::after {
 
     <p>
         Explore um corredor inspirado nos salões de Westeros. 
-        Caminhe entre os estandartes das Grandes Casas — Stark, Lannister, Targaryen — 
+        Caminhe entre os estandartes das Grandes Casas — Stark, Baratheon, Lannister e Targaryen — 
         enquanto avança em direção ao lendário Trono de Ferro.
     </p>
 
@@ -151,6 +180,10 @@ body::after {
 </div>
 
 <script>
+/*
+  Redireciona para a tela de introdução
+  antes de entrar na cena WebGL.
+*/
 function enterScene() {
     window.location.href = "intro.html";
 }
