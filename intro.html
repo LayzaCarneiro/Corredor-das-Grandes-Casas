@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardiões de Westeros</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    height: 100vh;
+    background: linear-gradient(to bottom, #0b0b0f, #15151c);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Cinzel', serif;
+    color: #e6d3a3;
+    text-align: center;
+    overflow: hidden;
+}
+
+.container {
+    max-width: 900px;
+    padding: 40px;
+    animation: fadeIn 2s ease-in-out;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 25px;
+    letter-spacing: 3px;
+    color: #d4af37;
+}
+
+.context {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 35px;
+    color: #cccccc;
+}
+
+/* Cards da equipe */
+.team {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-bottom: 40px;
+}
+
+.card {
+    background: rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    padding: 20px;
+    width: 220px;
+    border-radius: 8px;
+    transition: 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+.card h3 {
+    margin-bottom: 10px;
+    color: #d4af37;
+}
+
+.card p {
+    font-size: 0.9rem;
+    color: #bbbbbb;
+}
+
+.card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid #d4af37;
+    transition: 0.3s ease;
+}
+
+.card:hover img {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(212,175,55,0.6);
+}
+
+/* Botão */
+button {
+    padding: 15px 45px;
+    font-size: 1rem;
+    background: transparent;
+    border: 2px solid #d4af37;
+    color: #d4af37;
+    cursor: pointer;
+    transition: 0.3s ease;
+    letter-spacing: 2px;
+}
+
+button:hover {
+    background: #d4af37;
+    color: #0b0b0f;
+    box-shadow: 0 0 25px #d4af37;
+}
+
+/* Animação */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Vinheta */
+body::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 60%, rgba(0,0,0,0.8));
+    pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Os Guardiões do Corredor</h1>
+
+    <div class="context">
+        <p>
+            Game of Thrones é uma obra baseada na série de livros "As Crônicas de Gelo e Fogo",
+            que retrata disputas políticas, guerras e alianças entre grandes casas nobres
+            pelo controle de Westeros.
+        </p>
+        <br>
+        <p>
+            No centro dessa disputa está o lendário <strong>Trono de Ferro</strong>,
+            forjado com as espadas dos inimigos derrotados.
+            Ele simboliza poder absoluto e domínio sobre os Sete Reinos.
+        </p>
+        <br>
+        <p>
+            Neste passeio virtual, você percorrerá um corredor inspirado
+            nos salões reais até alcançar o Trono.
+        </p>
+    </div>
+
+    <div class="team">
+
+        <div class="card">
+            <img src="assets/integrantes/valente.png" alt="Sor Valente da Casa Stark">
+            <h3>Sor Valente</h3>
+            <p>Da Casa Stark</p>
+            <p>"O Inverno Está Chegando"</p>
+        </div>
+
+        <div class="card">
+            <img src="assets/integrantes/william.png" alt="Sor William da Casa Baratheon">
+            <h3>Sor William</h3>
+            <p>Da Casa Baratheon</p>
+            <p>"Nossa é a Fúria"</p>
+        </div>
+
+        <div class="card">
+            <img src="assets/integrantes/layza.png" alt="Lady Layza da Casa Targaryen">
+            <h3>Lady Layza</h3>
+            <p>Da Casa Targaryen</p>
+            <p>"Fogo e Sangue"</p>
+        </div>
+
+    </div>
+
+
+    <button onclick="startTour()">ENTRAR NO CORREDOR</button>
+</div>
+
+<script>
+function startTour() {
+    window.location.href = "scene.html";
+}
+</script>
+
+</body>
+</html>
