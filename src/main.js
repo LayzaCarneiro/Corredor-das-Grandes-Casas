@@ -12,7 +12,6 @@ import {
   normalMatrixFromMat4,
 } from './phong.js';
 import { createCorridorRoomScenario, createVAO } from './scenario.js';
-import { loadOBJ } from './obj.js';
 
 const canvas = document.getElementById("glCanvas");
 function resizeCanvas() {
@@ -140,22 +139,6 @@ function render(time = 0) {
     gl.drawArrays(gl.TRIANGLES, 0, part.vao.vertexCount);
   }
   gl.bindVertexArray(null);
-  
-  // Renderiza o modelo OBJ (se carregado)
-  if (objVAO && objVertexCount > 0) {
-    // Matriz de transformação para o objeto OBJ
-    // Posiciona o objeto em uma posição diferente do cubo
-    const objModel = new Float32Array([
-      1, 0, 0, 0,
-      0, 1, 0, 0,
-      0, 0, 1, 0,
-      2, 0, 0, 1  // Translada 2 unidades no eixo X
-    ]);
-    
-    gl.bindVertexArray(objVAO);
-    gl.uniformMatrix4fv(uModel, false, objModel);
-    gl.drawArrays(gl.TRIANGLES, 0, objVertexCount);
-  }
   
   requestAnimationFrame(render);
 }
