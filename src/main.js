@@ -84,6 +84,10 @@ const parts = [
 let ironThroneObj = null;
 let ironThroneTexture = null;
 
+// Carregar espada OBJ e textura para primeira pessoa
+let swordObj = null;
+let swordTexture = null;
+
 async function loadIronThrone() {
   try {
     const objData = await loadOBJ('models/iron_throne.obj');
@@ -105,7 +109,29 @@ async function loadIronThrone() {
   }
 }
 
+async function loadSword() {
+  try {
+    const objData = await loadOBJ('models/espada.obj');
+    swordObj = {
+      vao: createVAO(gl, objData),
+      material: { 
+        baseColor: [0.7, 0.7, 0.7], 
+        ka: 0.3, 
+        kd: 0.7, 
+        ks: 0.6, 
+        shininess: 100 
+      },
+      useTexture: true,
+    };
+    swordTexture = loadTexture(gl, 'models/espada.jpg');
+    console.log('Espada carregada com sucesso');
+  } catch (error) {
+    console.error('Erro ao carregar espada:', error);
+  }
+}
+
 loadIronThrone();
+loadSword();
 
 // Configurar áudio de fundo
 const backgroundAudio = new Audio('audio/YTDown.com_YouTube_Game-of-Thrones-Tema-de-Abertura-Oppenin_Media_8wYhc8xpBkc_001_1080p.mp4');
@@ -131,6 +157,88 @@ const IDENTITY_MODEL = new Float32Array([
   0, 0, 1, 0,
   0, 0, 0, 1,
 ]);
+
+// Função para criar matriz de identidade
+function createIdentity() {
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+// Função para multiplicar matrizes 4x4
+function multiplyMat4(a, b) {
+  const result = new Float32Array(16);
+  for (let i = 0; i < 4; i++) {
+    for (let j = 0; j < 4; j++) {
+      let sum = 0;
+      for (let k = 0; k < 4; k++) {
+        sum += a[i + k * 4] * b[k + j * 4];
+      }
+      result[i + j * 4] = sum;
+    }
+  }
+  return result;
+}
+
+// Função para criar matriz de translação
+function translateMat4(x, y, z) {
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    x, y, z, 1,
+  ]);
+}
+
+// Função para criar matriz de rotação no eixo X
+function rotateXMat4(angle) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return new Float32Array([
+    1, 0, 0, 0,
+    0, c, -s, 0,
+    0, s, c, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+// Função para criar matriz de rotação no eixo Y
+function rotateYMat4(angle) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return new Float32Array([
+    c, 0, s, 0,
+    0, 1, 0, 0,
+    -s, 0, c, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+// Função para criar matriz de rotação no eixo Z
+function rotateZMat4(angle) {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return new Float32Array([
+    c, -s, 0, 0,
+    s, c, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
+// Função para criar matriz de escala
+function scaleMat4(x, y, z) {
+  return new Float32Array([
+    x, 0, 0, 0,
+    0, y, 0, 0,
+    0, 0, z, 0,
+    0, 0, 0, 1,
+  ]);
+}
+
 
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.1, 0.1, 0.1, 1.0);
@@ -227,6 +335,75 @@ function render(time = 0) {
 
     gl.bindVertexArray(ironThroneObj.vao.vao);
     gl.drawArrays(gl.TRIANGLES, 0, ironThroneObj.vao.vertexCount);
+  }
+
+  // Desenhar espada em primeira pessoa (travada na visão)
+  if (swordObj && swordTexture) {
+    // Calcular se a câmera está se movimentando
+    const movementMagnitude = Math.sqrt(
+      camera.velocity[0] ** 2 + camera.velocity[2] ** 2
+    );
+    
+    // Animação de bobbing apenas enquanto se move
+    const bobAmount = 0.4 * Math.min(movementMagnitude / 3.0, 1.0); // Escala com movimento
+    const bobSpeed = 2.5;
+    const bobY = Math.sin(time * 0.001 * bobSpeed) * bobAmount;
+    
+    // Construir matriz de transformação da espada
+    // 1. Escala para ficar bem visível
+    let swordMatrix = scaleMat4(0.7, 0.35, 0.7);
+    
+    // 2. Rotação para ficar diagonal
+    swordMatrix = multiplyMat4(rotateXMat4(Math.PI / 2), swordMatrix);
+    
+    // 3. Rotação em Z para deixar diagonal (inclinada)
+    swordMatrix = multiplyMat4(rotateZMat4(Math.PI / 4), swordMatrix);
+    
+    // 4. Rotação em Y para virar a espada
+    swordMatrix = multiplyMat4(rotateYMat4(Math.PI / 6), swordMatrix);
+    
+    // 5. Translação: posição como se estivesse na mão do personagem
+    const swordTranslate = translateMat4(
+      0.1,           // mais para esquerda
+      -0.6 + bobY,   // balança apenas enquanto se move
+      -0.5           // frente do campo de visão (mais próximo)
+    );
+    swordMatrix = multiplyMat4(swordTranslate, swordMatrix);
+    
+    // Adicionar posição da câmera (para seguir o personagem)
+    const cameraTranslate = translateMat4(
+      camera.position[0],
+      camera.position[1],
+      camera.position[2]
+    );
+    swordMatrix = multiplyMat4(cameraTranslate, swordMatrix);
+    
+    // View matrix simplificada que não rotaciona (apenas translação)
+    // Isso mantém a espada sempre na mesma orientação visual
+    const simplifiedView = new Float32Array([
+      1, 0, 0, 0,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      -camera.position[0], -camera.position[1], -camera.position[2], 1,
+    ]);
+
+    setPhongMatrices(gl, locs, {
+      model: swordMatrix,
+      view: simplifiedView,
+      projection,
+      normalMatrix: normalMatrixFromMat4(swordMatrix),
+    });
+
+    setPhongMaterial(gl, locs, swordObj.material);
+    
+    // Ativar textura da espada
+    gl.uniform1i(locs.uUseTexture, 1);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, swordTexture);
+    gl.uniform1i(locs.uTexture, 0);
+
+    gl.bindVertexArray(swordObj.vao.vao);
+    gl.drawArrays(gl.TRIANGLES, 0, swordObj.vao.vertexCount);
   }
 
   gl.bindVertexArray(null);

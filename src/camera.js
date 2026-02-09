@@ -3,6 +3,7 @@ import { normalize, cross } from './math.js';
 export class Camera {
   constructor(canvas, opts = {}) {
     this.position = opts.position ?? [0, 0, 3];
+    this.velocity = [0, 0, 0];
     this.yaw = -90;
     this.pitch = 0;
     // velocidade em unidades/segundo (independente de FPS)
@@ -48,6 +49,9 @@ export class Camera {
     if (this.keys["s"]) { dx -= forward[0] * step; dz -= forward[2] * step; }
     if (this.keys["a"]) { dx -= right[0] * step; dz -= right[2] * step; }
     if (this.keys["d"]) { dx += right[0] * step; dz += right[2] * step; }
+
+    // Armazenar velocidade para animações
+    this.velocity = [dx / dt, 0, dz / dt];
 
     if (dx === 0 && dz === 0) return;
 
