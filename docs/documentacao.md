@@ -378,15 +378,23 @@ Essas funções não são exportadas, mas são o “motor” do cenário.
   - `roomSize`
   - `wallHeight`
   - `doorWidth`, `doorHeight`, `doorThickness`
+  - `carpetWidth`: largura do tapete (unidades do mundo)
+  - `carpetOffsetY`: deslocamento em Y do tapete (evita z-fighting com o piso)
 - **Retorno**: objeto `{ params, meshes, checkCollision }`
   - `params`: configuração final resolvida (com defaults)
-  - `meshes`: `{ floor, ceiling, walls, door }` com `positions`, `normals`, `vertexCount`
+  - `meshes`: `{ floor, carpet, ceiling, walls, door }` com `positions`, `normals`, `vertexCount`
   - `checkCollision(x,z,radius)`: colisão em XZ
 
 **Sistema de coordenadas do cenário:**
 - Corredor: `z ∈ [0, Lc]`
 - Sala: `z ∈ [Lc, Lc + S]`
 - Paredes laterais em `x = ±(largura/2)`.
+
+**Tapete vermelho (objeto sólido):**
+
+- O tapete é um mesh separado (`meshes.carpet`) para permitir **material próprio** (vermelho sólido).
+- Ele vai do início do passeio até a entrada da sala, cobrindo `z ∈ [0, Lc]`.
+- Ele fica levemente acima do piso (`carpetOffsetY`, default `0.01`) para evitar “z-fighting” (briga no depth buffer) com o mesh do piso.
 
 #### `checkCollision(x, z, radius = 0.35)`
 
@@ -441,6 +449,8 @@ Essas funções não são exportadas, mas são o “motor” do cenário.
      - `SpotLight` desabilitada (mas disponível para alternar).
   5. Seta matrizes e normal matrix.
   6. Renderiza as partes do cenário, cada uma com seu material.
+     - Partes típicas (na ordem de desenho): `floor`, `carpet`, `walls`, `ceiling`, `door`.
+     - O tapete (`carpet`) usa material vermelho sólido e é desenhado separado do piso para não “tingir” o chão todo e para poder controlar o brilho/reflectância de forma independente.
 
 ---
 
