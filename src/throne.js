@@ -75,7 +75,7 @@ export function circleIntersectsAabbXZ(cx, cz, r) {
  * getThronePosZ(scenario)
  * Retorna a posição Z do trono baseado no cenário.
  */
-export function getThronePosZ(scenario) {
+function getThronePosZ(scenario) {
   return scenario.params.corridorLength + scenario.params.roomSize - 2.0;
 }
 
@@ -108,7 +108,6 @@ export async function loadIronThrone(gl, scenario) {
     console.error('Erro ao carregar trono:', error);
   }
 }
-
 
 /**
  * renderIronThrone(gl, locs, scenario, view, projection)
