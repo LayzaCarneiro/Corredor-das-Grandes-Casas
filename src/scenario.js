@@ -191,8 +191,54 @@ export function createVAO(gl, mesh) {
   gl.enableVertexAttribArray(1);
   gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
 
+  // texCoords (loc 2) - se existirem
+  if (mesh.texCoords && mesh.texCoords.length > 0) {
+    const texBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, mesh.texCoords, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(2);
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+  }
+
   gl.bindVertexArray(null);
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
   return { vao, vertexCount: mesh.vertexCount };
+}
+
+/**
+ * Carrega uma textura do WebGL
+ * @param {WebGL2RenderingContext} gl - Contexto WebGL
+ * @param {string} url - Caminho da imagem
+ * @returns {WebGLTexture} Textura carregada
+ */
+export function loadTexture(gl, url) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Textura temporária de 1x1 pixel enquanto carrega
+  const pixel = new Uint8Array([128, 128, 128, 255]);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+
+  const image = new Image();
+  image.onload = () => {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    
+    // Verifica se a imagem é potência de 2
+    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+      gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+  };
+  image.src = url;
+
+  return texture;
+}
+
+function isPowerOf2(value) {
+  return (value & (value - 1)) === 0;
 }

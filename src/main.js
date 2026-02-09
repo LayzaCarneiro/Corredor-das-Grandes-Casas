@@ -12,7 +12,8 @@ import {
   setPhongSpotLight,
   normalMatrixFromMat4,
 } from './phong.js';
-import { createCorridorRoomScenario, createVAO } from './scenario.js';
+import { createCorridorRoomScenario, createVAO, loadTexture } from './scenario.js';
+import { loadOBJ } from './obj.js';
 
 const canvas = document.getElementById("glCanvas");
 function resizeCanvas() {
@@ -52,23 +53,65 @@ const parts = [
     name: 'floor',
     vao: createVAO(gl, scenario.meshes.floor),
     material: { baseColor: [0.35, 0.18, 0.08], ka: 0.35, kd: 0.75, ks: 0.08, shininess: 12 },
+    useTexture: false,
   },
   {
     name: 'walls',
     vao: createVAO(gl, scenario.meshes.walls),
     material: { baseColor: [0.45, 0.45, 0.48], ka: 0.25, kd: 0.7, ks: 0.15, shininess: 22 },
+    useTexture: false,
   },
   {
     name: 'ceiling',
     vao: createVAO(gl, scenario.meshes.ceiling),
     material: { baseColor: [0.08, 0.08, 0.22], ka: 0.35, kd: 0.6, ks: 0.12, shininess: 18 },
+    useTexture: false,
   },
   {
     name: 'door',
     vao: createVAO(gl, scenario.meshes.door),
     material: { baseColor: [0.35, 0.20, 0.10], ka: 0.35, kd: 0.65, ks: 0.18, shininess: 28 },
+    useTexture: false,
   },
 ];
+
+// Carregar trono OBJ e textura
+let ironThroneObj = null;
+let ironThroneTexture = null;
+
+async function loadIronThrone() {
+  try {
+    const objData = await loadOBJ('models/iron_throne.obj');
+    ironThroneObj = {
+      vao: createVAO(gl, objData),
+      material: { 
+        baseColor: [0.8, 0.8, 0.8], 
+        ka: 0.3, 
+        kd: 0.7, 
+        ks: 0.5, 
+        shininess: 159.999985 
+      },
+      useTexture: true,
+    };
+    ironThroneTexture = loadTexture(gl, 'models/IronThrone_Diff.vtf.png');
+    console.log('Trono de ferro carregado com sucesso');
+  } catch (error) {
+    console.error('Erro ao carregar trono:', error);
+  }
+}
+
+loadIronThrone();
+
+// Configurar áudio de fundo
+const backgroundAudio = new Audio('audio/YTDown.com_YouTube_Game-of-Thrones-Tema-de-Abertura-Oppenin_Media_8wYhc8xpBkc_001_1080p.mp4');
+backgroundAudio.loop = true;
+backgroundAudio.volume = 0.3;
+
+// Iniciar áudio após interação do usuário
+document.addEventListener('click', () => {
+  backgroundAudio.play().catch(e => console.log('Erro ao reproduzir áudio:', e));
+}, { once: true });
+
 
 const camera = new Camera(canvas, {
   position: [0, 1.6, START_Z],
@@ -145,9 +188,42 @@ function render(time = 0) {
 
   for (const part of parts) {
     setPhongMaterial(gl, locs, part.material);
+    gl.uniform1i(locs.uUseTexture, 0); // Sem textura para partes do cenário
     gl.bindVertexArray(part.vao.vao);
     gl.drawArrays(gl.TRIANGLES, 0, part.vao.vertexCount);
   }
+
+  // Desenhar trono de ferro no final da sala
+  if (ironThroneObj && ironThroneTexture) {
+    // Posicionar trono no final da sala
+    const throneZ = scenario.params.corridorLength + scenario.params.roomSize - 2.0;
+    // Escala maior (1.5) + Rotação de 180° no eixo Y para virar o trono
+    const throneModel = new Float32Array([
+      -1.5, 0, 0, 0,
+      0, 1.5, 0, 0,
+      0, 0, -1.5, 0,
+      0, 0, throneZ, 1,
+    ]);
+
+    setPhongMatrices(gl, locs, {
+      model: throneModel,
+      view,
+      projection,
+      normalMatrix: normalMatrixFromMat4(throneModel),
+    });
+
+    setPhongMaterial(gl, locs, ironThroneObj.material);
+    
+    // Ativar textura
+    gl.uniform1i(locs.uUseTexture, 1);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, ironThroneTexture);
+    gl.uniform1i(locs.uTexture, 0);
+
+    gl.bindVertexArray(ironThroneObj.vao.vao);
+    gl.drawArrays(gl.TRIANGLES, 0, ironThroneObj.vao.vertexCount);
+  }
+
   gl.bindVertexArray(null);
   
   requestAnimationFrame(render);
