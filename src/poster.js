@@ -4,6 +4,7 @@
 import { createVAO, loadTexture, createPosterMesh } from './scenario.js';
 import { POSTER_PATHS, POSTERS_CONFIG } from './data.js';
 import { setPhongMaterial, setPhongMatrices, normalMatrixFromMat4 } from './phong.js';
+import { THRONE_CONFIG } from './data.js';
 
 // Arrays globais para armazenar texturas e VAO da geometria do pôster
 let posterTextures = [];
@@ -86,6 +87,14 @@ export function updatePosterUI(cameraPos, uiElement, uiTitle, uiText, threshold 
       closest = p;
       break; // Encontrou um perto, não precisa checar os outros
     }
+  }
+
+  // Se não encontrou pôster, checa o trono
+  if (!closest && THRONE_CONFIG.z !== null) {
+    const dx = THRONE_CONFIG.x - cameraPos[0];
+    const dz = THRONE_CONFIG.z - cameraPos[2];
+    const distance = Math.hypot(dx, dz);
+    if (distance < threshold) closest = THRONE_CONFIG;
   }
 
   // Atualiza a UI baseada no pôster mais próximo

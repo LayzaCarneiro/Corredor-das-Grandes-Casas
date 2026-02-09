@@ -15,8 +15,9 @@ import {
 } from './phong.js';
 import { createWorld } from './scene.js';
 import { setupPosters, renderPosters, updatePosterUI } from './poster.js';
-import { loadIronThrone, renderIronThrone, circleIntersectsAabbXZ } from './throne.js';
+import { loadIronThrone, renderIronThrone, circleIntersectsAabbXZ, getThronePosZ } from './throne.js';
 import { loadSword, renderSword } from './sword.js';
+import { THRONE_CONFIG } from './data.js';
 
 // --- INICIALIZAÇÃO DO CANVAS E WEBGL ---
 const canvas = document.getElementById("glCanvas");
@@ -162,6 +163,8 @@ async function main() {
   await setupPosters(gl);
   await loadIronThrone(gl, scenario);
   await loadSword(gl);
+  
+  THRONE_CONFIG.z = getThronePosZ(scenario);
 
   render();
 }

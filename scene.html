@@ -2,10 +2,75 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <title>Corredor do Trono de Ferro</title>
+  <title>Corredor das Grandes Casas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; overflow: hidden; }
+    body { margin: 0; overflow: hidden; background-color: #0f0f0f; }
     canvas { display: block; }
+
+    /* ---------------- Poster UI ---------------- */
+    #poster-ui {
+        position: absolute;
+        bottom: 12%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(20, 20, 20, 0.95); /* Fundo mais escuro e imersivo */
+        color: #e6d3a3;
+        padding: 25px 35px;
+        border-radius: 4px;
+        font-family: 'Cinzel', serif;
+        display: none;
+        pointer-events: none;
+
+        /* Borda decorativa dupla */
+        border: 2px solid #daa520; 
+        outline: 5px solid rgba(0, 0, 0, 0.8);
+
+        box-shadow: 0 0 35px rgba(0,0,0,0.9), inset 0 0 15px rgba(218,165,32,0.2);
+        max-width: 480px;
+        text-align: center;
+        transition: opacity 0.5s ease-in-out;
+        z-index: 100;
+    }
+
+    /* Detalhe decorativo no topo */
+    #poster-ui::before {
+        content: "♛"; /* Coroa medieval */
+        display: block;
+        color: #daa520;
+        margin-bottom: 10px;
+        font-size: 1.5rem;
+    }
+
+    /* Título */
+    #poster-title {
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin: 0 0 15px 0;
+        font-weight: 900;
+        font-size: 1.4rem;
+        text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
+        color: #ffd700; /* dourado mais vivo */
+    }
+
+    /* Texto */
+    #poster-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        font-style: italic;
+        color: #f0f0f0;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    }
+
+    /* Pequena animação ao aparecer */
+    #poster-ui.show {
+        display: block;
+        opacity: 1;
+    }
+    #poster-ui.hide {
+        opacity: 0;
+        transition: opacity 0.3s ease-out;
+    }
   </style>
 </head>
 
@@ -13,75 +78,10 @@
   <canvas id="glCanvas"></canvas>
   <script type="module" src="src/main.js"></script>
 
-  <div id="poster-ui" style="
-      position: absolute; 
-      bottom: 20%; 
-      left: 50%; 
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 20px;
-      border-radius: 10px;
-      font-family: sans-serif;
-      display: none; /* Começa escondido */
-      pointer-events: none;
-      border: 2px solid #daa520;
-      max-width: 300px;
-      text-align: center;
-  ">
-      <h3 id="poster-title" style="margin-top: 0; color: #daa520;">Curiosidade</h3>
-      <p id="poster-text"></p>
+  <div id="poster-ui">
+      <h3 id="poster-title">Curiosidade</h3>
+      <p id="poster-text">Informações sobre a casa ou objeto vão aparecer aqui.</p>
   </div>
 
 </body>
 </html>
-
-<style>
-    #poster-ui {
-        position: absolute;
-        bottom: 10%;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(15, 15, 15, 0.9); /* Mais escuro e opaco */
-        color: #e6d3a3;
-        padding: 30px;
-        border-radius: 2px; /* Cantos retos parecem mais medievais */
-        font-family: 'Cinzel', serif; /* Mesma fonte do menu */
-        display: none;
-        pointer-events: none;
-        
-        /* Borda dupla */
-        border: 1px solid #daa520;
-        outline: 4px solid rgba(0, 0, 0, 0.8);
-        box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(218, 165, 32, 0.2);
-        
-        max-width: 450px;
-        text-align: center;
-        transition: opacity 0.5s ease-in-out;
-        z-index: 100;
-    }
-
-    #poster-ui::before {
-        content: "◈"; /* Detalhe decorativo */
-        display: block;
-        color: #daa520;
-        margin-bottom: 10px;
-        font-size: 1.2rem;
-    }
-
-    #poster-title {
-        text-transform: uppercase;
-        letter-spacing: 3px;
-        margin: 0 0 15px 0;
-        font-weight: 900;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    }
-
-    #poster-text {
-        font-family: 'Cinzel', serif;
-        font-size: 1.1rem;
-        line-height: 1.5;
-        font-style: italic;
-        color: #cccccc;
-    }
-</style>

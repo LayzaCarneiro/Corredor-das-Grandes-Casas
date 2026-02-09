@@ -127,3 +127,21 @@ export const POSTERS_CONFIG = [
     textColor: "#fff2e6"
   },
 ];
+
+export const THRONE_CONFIG = {
+  x: 0,     
+  y: 0,
+  z: null,
+  title: "Trono de Ferro",
+  info: `
+  Lema: "O Trono de Ferro é o símbolo do poder em Westeros."
+
+  História: Forjado com as espadas dos inimigos de Aegon, o Conquistador.
+
+  Curiosidade: Sentar nele não é confortável — muitas espadas ainda pontiagudas!
+
+  Eventos icônicos: Disputa pelo trono central na Guerra dos Cinco Reis.
+  `,
+  uiColor: "#4b2e2e",  // fundo marrom escuro
+  textColor: "#f5e0c3" // texto claro
+};

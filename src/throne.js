@@ -75,7 +75,7 @@ export function circleIntersectsAabbXZ(cx, cz, r) {
  * getThronePosZ(scenario)
  * Retorna a posição Z do trono baseado no cenário.
  */
-function getThronePosZ(scenario) {
+export function getThronePosZ(scenario) {
   return scenario.params.corridorLength + scenario.params.roomSize - 2.0;
 }
 
