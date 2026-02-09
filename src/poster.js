@@ -1,19 +1,33 @@
 // poster.js
+// --- Funções para criar, renderizar e atualizar os pôsteres na sala ---
+
 import { createVAO, loadTexture, createPosterMesh } from './scenario.js';
 import { POSTER_PATHS, POSTERS_CONFIG } from './data.js';
 import { setPhongMaterial, setPhongMatrices, normalMatrixFromMat4 } from './phong.js';
 
+// Arrays globais para armazenar texturas e VAO da geometria do pôster
 let posterTextures = [];
 let posterVao = null;
 
+/**
+ * setupPosters(gl)
+ * Carrega as texturas e cria a geometria (VAO) dos pôsteres.
+ */
 export async function setupPosters(gl) {
+  // Carrega todas as texturas dos pôsteres
   posterTextures = POSTER_PATHS.map(path => loadTexture(gl, path, true));
+
+  // Cria mesh do pôster (uma geometria padrão para todos) e cria VAO
   const mesh = createPosterMesh();
   posterVao = createVAO(gl, mesh);
 }
 
-// --- FUNÇÃO PARA DESENHAR PÔSTERES ---
+/**
+ * renderPosters(gl, locs, view, projection)
+ * Desenha todos os pôsteres na cena.
+ */
 export function renderPosters(gl, locs, view, projection) {
+  // Se VAO ou texturas não estiverem carregados, retorna
   if (!posterVao || posterTextures.length === 0) return;
 
   gl.uniform1i(locs.uUseTexture, 1); // Ativa modo textura
@@ -22,6 +36,7 @@ export function renderPosters(gl, locs, view, projection) {
 
   // Material padrão do papel
   setPhongMaterial(gl, locs, { baseColor:[1,1,1], ka:0.4, kd:0.8, ks:0.1, shininess:5 });
+  
   // Vincula o VAO uma vez só (a geometria é a mesma para todos)
   gl.bindVertexArray(posterVao.vao);
 
@@ -41,6 +56,7 @@ export function renderPosters(gl, locs, view, projection) {
       p.x, p.y, p.z, 1
     ]);
 
+    // Atualiza matrizes no shader
     setPhongMatrices(gl, locs, {
       model,
       view,
@@ -53,7 +69,10 @@ export function renderPosters(gl, locs, view, projection) {
   }
 }
 
-// --- FUNÇÃO PARA ATUALIZAR UI DE PÔSTERES ---
+/**
+ * updatePosterUI(cameraPos, uiElement, uiTitle, uiText, threshold)
+ * Atualiza a UI com título e informações do pôster mais próximo da câmera.
+ */
 export function updatePosterUI(cameraPos, uiElement, uiTitle, uiText, threshold = 2.0) {
   let closest = null;
 

@@ -1,16 +1,20 @@
 // throne.js
+// --- Carregamento, renderização e colisão do Trono de Ferro ---
+
 import { loadOBJ } from './obj.js';
 import { createVAO, loadTexture } from './scenario.js';
 import { setPhongMatrices, setPhongMaterial, normalMatrixFromMat4 } from './phong.js';
 
+// --- Constantes de escala e posição ---
 export const THRONE_SCALE = 1.5;
 export const THRONE_POS_X = 0.0;
 
+// --- Referências globais para objeto, textura e AABB ---
 let ironThroneObj = null;
 let ironThroneTexture = null;
 let ironThroneWorldAabbXZ = null;
 
-// --- Funções auxiliares para colisão ---
+// --- Funções auxiliares para colisão AABB ---
 function computeLocalAabbXZ(positions) {
   let minX = Infinity, maxX = -Infinity;
   let minZ = Infinity, maxZ = -Infinity;
@@ -25,6 +29,7 @@ function computeLocalAabbXZ(positions) {
   return { minX, maxX, minZ, maxZ };
 }
 
+// Encolhe o AABB para diminuir a área de colisão
 function shrinkAabbXZ(aabb, factor = 0.85) {
   const cx = (aabb.minX + aabb.maxX) * 0.5;
   const cz = (aabb.minZ + aabb.maxZ) * 0.5;
@@ -33,6 +38,7 @@ function shrinkAabbXZ(aabb, factor = 0.85) {
   return { minX: cx - ex, maxX: cx + ex, minZ: cz - ez, maxZ: cz + ez };
 }
 
+// Transforma o AABB local para coordenadas de mundo com escala e translação
 function transformAabbXZ(localAabb, { scale, tx, tz }) {
   // Model do trono usa escala negativa em X/Z (rotação 180° no Y).
   const sx = -scale;
@@ -51,6 +57,10 @@ function transformAabbXZ(localAabb, { scale, tx, tz }) {
   };
 }
 
+/**
+ * circleIntersectsAabbXZ(cx, cz, r)
+ * Verifica se um círculo (posição do jogador) colide com o AABB do trono.
+ */
 export function circleIntersectsAabbXZ(cx, cz, r) {
   if (!ironThroneWorldAabbXZ) return false;
   const aabb = ironThroneWorldAabbXZ;
@@ -61,12 +71,18 @@ export function circleIntersectsAabbXZ(cx, cz, r) {
   return (dx * dx + dz * dz) < (r * r);
 }
 
-// --- Função para obter posição Z do trono ---
+/**
+ * getThronePosZ(scenario)
+ * Retorna a posição Z do trono baseado no cenário.
+ */
 export function getThronePosZ(scenario) {
   return scenario.params.corridorLength + scenario.params.roomSize - 2.0;
 }
 
-// --- Carregar trono ---
+/**
+ * loadIronThrone(gl, scenario)
+ * Carrega modelo, textura e calcula AABB do trono.
+ */
 export async function loadIronThrone(gl, scenario) {
   try {
     const objData = await loadOBJ('models/iron_throne.obj');
@@ -93,11 +109,17 @@ export async function loadIronThrone(gl, scenario) {
   }
 }
 
-// --- Função para desenhar trono ---
+
+/**
+ * renderIronThrone(gl, locs, scenario, view, projection)
+ * Renderiza o trono de ferro no cenário.
+ */
 export function renderIronThrone(gl, locs, scenario, view, projection) {
   if (!ironThroneObj || !ironThroneTexture) return;
 
   const throneZ = getThronePosZ(scenario);
+
+  // Matriz de modelo: escala negativa em X/Z para "espelhar", posição final
   const throneModel = new Float32Array([
     -THRONE_SCALE, 0, 0, 0,
     0, THRONE_SCALE, 0, 0,
@@ -114,11 +136,13 @@ export function renderIronThrone(gl, locs, scenario, view, projection) {
 
   setPhongMaterial(gl, locs, ironThroneObj.material);
 
+  // Textura
   gl.uniform1i(locs.uUseTexture, 1);
   gl.activeTexture(gl.TEXTURE0);
   gl.bindTexture(gl.TEXTURE_2D, ironThroneTexture);
   gl.uniform1i(locs.uTexture, 0);
 
+  // Desenha o VAO
   gl.bindVertexArray(ironThroneObj.vao.vao);
   gl.drawArrays(gl.TRIANGLES, 0, ironThroneObj.vao.vertexCount);
 }

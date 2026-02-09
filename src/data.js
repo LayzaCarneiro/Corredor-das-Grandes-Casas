@@ -1,7 +1,11 @@
 /**
  * data.js - Configurações das Casas e Pôsteres
+ * 
+ * POSTER_PATHS: caminhos das imagens de cada casa.
+ * POSTERS_CONFIG: posição, rotação, textura e informações para cada pôster.
  */
 
+// --- Caminhos para imagens dos pôsteres ---
 export const POSTER_PATHS = [
   '../assets/houses/stark-poster.png',
   '../assets/houses/lannister-poster.png',
@@ -13,7 +17,7 @@ export const POSTER_PATHS = [
   '../assets/houses/martell-poster.png',
 ];
 
-
+// --- Configurações detalhadas dos pôsteres ---
 export const POSTERS_CONFIG = [
   // --- PAREDE ESQUERDA (x: -2.45) ---
   { 
