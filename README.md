@@ -174,7 +174,7 @@ A documentação completa do projeto está disponível em:
 Para apresentar o projeto, preparamos materiais visuais e um vídeo demonstrativo:
 
 * **Slides da Apresentação:** [Clique aqui para abrir os slides](https://www.canva.com/design/DAHAxVZeDtk/vy6yiGYpLl-cCIALqd3BIQ/edit?utm_content=DAHAxVZeDtk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)  
-* **Vídeo Demonstrativo:** [Assista no YouTube](https://youtu.be/SEU_VIDEO_DEMO)  
+* **Vídeo Demonstrativo:** [Assista no YouTube](https://youtu.be/OQorAKRGxVs)  
 
 ---
 
