@@ -3,6 +3,7 @@ import { createProgram } from './shaders.js';
 export const phongVsSource = `#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
+layout(location = 2) in vec2 aTexCoord;
 
 uniform mat4 uModel;
 uniform mat4 uView;
@@ -11,12 +12,14 @@ uniform mat3 uNormalMatrix;
 
 out vec3 vWorldPos;
 out vec3 vWorldNormal;
+out vec2 vTexCoord;
 
 void main() {
     vec4 worldPos = uModel * vec4(aPosition, 1.0);
     vWorldPos = worldPos.xyz;
 
     vWorldNormal = normalize(uNormalMatrix * aNormal);
+    vTexCoord = aTexCoord;
 
     gl_Position = uProjection * uView * worldPos;
 }
@@ -29,6 +32,7 @@ out vec4 fragColor;
 
 in vec3 vWorldPos;
 in vec3 vWorldNormal;
+in vec2 vTexCoord;
 
 uniform vec3 uCameraPos;
 
@@ -41,6 +45,13 @@ uniform float uKa;        // ambiente
 uniform float uKd;        // difusa
 uniform float uKs;        // especular
 uniform float uShininess; // brilho
+
+// Textura
+uniform sampler2D uTexture;
+uniform int uUseTexture;
+
+// Variável global para armazenar a cor base (com ou sem textura)
+vec3 g_baseColor;
 
 struct DirectionalLight {
     vec3 direction; // direção PARA ONDE a luz aponta (mundo)
@@ -83,7 +94,7 @@ vec3 applyDirectionalLight(vec3 n, vec3 v) {
     float spec = (ndotl > 0.0) ? pow(max(dot(n, h), 0.0), uShininess) : 0.0;
 
     vec3 lightColor = uDirLight.color * uDirLight.intensity;
-    vec3 diffuse = uKd * ndotl * lightColor * uBaseColor;
+    vec3 diffuse = uKd * ndotl * lightColor * g_baseColor;
     vec3 specular = uKs * spec * lightColor;
     return diffuse + specular;
 }
@@ -105,7 +116,7 @@ vec3 applyPointLight(vec3 n, vec3 v) {
     float spec = (ndotl > 0.0) ? pow(max(dot(n, h), 0.0), uShininess) : 0.0;
 
     vec3 lightColor = uPointLight.color * uPointLight.intensity * att;
-    vec3 diffuse = uKd * ndotl * lightColor * uBaseColor;
+    vec3 diffuse = uKd * ndotl * lightColor * g_baseColor;
     vec3 specular = uKs * spec * lightColor;
     return diffuse + specular;
 }
@@ -134,7 +145,7 @@ vec3 applySpotLight(vec3 n, vec3 v) {
   float spec = (ndotl > 0.0) ? pow(max(dot(n, h), 0.0), uShininess) : 0.0;
 
   vec3 lightColor = uSpotLight.color * uSpotLight.intensity * att * cone;
-  vec3 diffuse = uKd * ndotl * lightColor * uBaseColor;
+  vec3 diffuse = uKd * ndotl * lightColor * g_baseColor;
   vec3 specular = uKs * spec * lightColor;
   return diffuse + specular;
 }
@@ -143,7 +154,13 @@ void main() {
     vec3 n = normalize(vWorldNormal);
     vec3 v = normalize(uCameraPos - vWorldPos);
 
-    vec3 ambient = uKa * uAmbientColor * uBaseColor;
+    // Define a cor base (textura ou cor sólida)
+    g_baseColor = uBaseColor;
+    if (uUseTexture == 1) {
+        g_baseColor = texture(uTexture, vTexCoord).rgb;
+    }
+
+    vec3 ambient = uKa * uAmbientColor * g_baseColor;
     vec3 color = ambient;
 
     color += applyDirectionalLight(n, v);
@@ -176,6 +193,10 @@ export function getPhongLocations(gl, program) {
     uKd: gl.getUniformLocation(program, 'uKd'),
     uKs: gl.getUniformLocation(program, 'uKs'),
     uShininess: gl.getUniformLocation(program, 'uShininess'),
+
+    // Textura
+    uTexture: gl.getUniformLocation(program, 'uTexture'),
+    uUseTexture: gl.getUniformLocation(program, 'uUseTexture'),
 
     // Luz direcional
     uDirLight_direction: gl.getUniformLocation(program, 'uDirLight.direction'),
