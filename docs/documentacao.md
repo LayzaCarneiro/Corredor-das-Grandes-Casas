@@ -20,9 +20,16 @@ Documento focado no código: responsabilidades de cada módulo, parâmetros/reto
 - `src/math.js`: matemática mínima (perspectiva, normalize, cross).
 - `src/shaders.js`: compilação/linkagem de shaders (helper genérico).
 - `src/obj.js`: loader de OBJ feito do zero (v/vn/vt + triangulação) usado para importar o Trono.
+- `src/data.js`: criação, renderização e UI interativa dos posters usados no corredor.
+- `src/poster.js`: configurações e dados dos posters usados no corredor.
+- `src/scene.js`: montagem do mundo 3D: instanciamento do cenário e configuração de partes.
+- `src/sword.js`: carregamento e renderização da espada em primeira pessoa com efeito de bob.
+- `src/throne.js`: carregamento, renderização e colisão do Trono de Ferro.
+- `src/transform.js`: funções de transformação geométrica: escala, rotação, translação e multiplicação.
 - `models/`: assets 3D (ex.: `iron_throne.obj` + textura `IronThrone_Diff.vtf.png`).
 - `audio/`: áudio de fundo tocado durante o passeio.
-- `README_OBJ.md` e `GUIA_RAPIDO_OBJ.md`: notas/guia de apoio sobre importação OBJ.
+- `assets/`: imagens utilizadas no projeto.
+- `README.md`: descrição do projeto.
 
 ---
 
@@ -47,7 +54,7 @@ O loop de execução acontece em `src/main.js` com `requestAnimationFrame(render
 4. Calcular matriz de view (`camera.getViewMatrix()`).
 5. Configurar iluminação (Phong) e material.
 6. Renderizar cada “parte” do cenário (piso, paredes, teto, porta) chamando `gl.drawArrays`.
-7. (Opcional) Renderizar o **Trono de Ferro** importado via OBJ, com textura.
+7. Renderizar o **Trono de Ferro** importado via OBJ, com textura.
 
 ### 2.3 Controles
 
