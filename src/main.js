@@ -83,6 +83,61 @@ const parts = [
 // Carregar trono OBJ e textura
 let ironThroneObj = null;
 let ironThroneTexture = null;
+let ironThroneWorldAabbXZ = null;
+
+const THRONE_SCALE = 1.5;
+const THRONE_POS_X = 0.0;
+function getThronePosZ() {
+  return scenario.params.corridorLength + scenario.params.roomSize - 2.0;
+}
+
+function computeLocalAabbXZ(positions) {
+  let minX = Infinity, maxX = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i];
+    const z = positions[i + 2];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+  return { minX, maxX, minZ, maxZ };
+}
+
+function shrinkAabbXZ(aabb, factor = 0.85) {
+  const cx = (aabb.minX + aabb.maxX) * 0.5;
+  const cz = (aabb.minZ + aabb.maxZ) * 0.5;
+  const ex = (aabb.maxX - aabb.minX) * 0.5 * factor;
+  const ez = (aabb.maxZ - aabb.minZ) * 0.5 * factor;
+  return { minX: cx - ex, maxX: cx + ex, minZ: cz - ez, maxZ: cz + ez };
+}
+
+function transformAabbXZ(localAabb, { scale, tx, tz }) {
+  // Model do trono usa escala negativa em X/Z (rotação 180° no Y).
+  const sx = -scale;
+  const sz = -scale;
+
+  const x1 = sx * localAabb.minX + tx;
+  const x2 = sx * localAabb.maxX + tx;
+  const z1 = sz * localAabb.minZ + tz;
+  const z2 = sz * localAabb.maxZ + tz;
+
+  return {
+    minX: Math.min(x1, x2),
+    maxX: Math.max(x1, x2),
+    minZ: Math.min(z1, z2),
+    maxZ: Math.max(z1, z2),
+  };
+}
+
+function circleIntersectsAabbXZ(cx, cz, r, aabb) {
+  const closestX = Math.max(aabb.minX, Math.min(cx, aabb.maxX));
+  const closestZ = Math.max(aabb.minZ, Math.min(cz, aabb.maxZ));
+  const dx = cx - closestX;
+  const dz = cz - closestZ;
+  return (dx * dx + dz * dz) < (r * r);
+}
 
 async function loadIronThrone() {
   try {
@@ -99,6 +154,16 @@ async function loadIronThrone() {
       useTexture: true,
     };
     ironThroneTexture = loadTexture(gl, 'models/IronThrone_Diff.vtf.png');
+
+    // Calcula AABB de colisão em XZ com base no OBJ (no espaço local) e aplica o mesmo
+    // transform usado no render (escala + rotação 180° via escala negativa + translação).
+    const localAabb = shrinkAabbXZ(computeLocalAabbXZ(objData.positions), 0.82);
+    ironThroneWorldAabbXZ = transformAabbXZ(localAabb, {
+      scale: THRONE_SCALE,
+      tx: THRONE_POS_X,
+      tz: getThronePosZ(),
+    });
+
     console.log('Trono de ferro carregado com sucesso');
   } catch (error) {
     console.error('Erro ao carregar trono:', error);
@@ -120,7 +185,11 @@ document.addEventListener('click', () => {
 
 const camera = new Camera(canvas, {
   position: [0, 1.6, START_Z],
-  collisionFn: scenario.checkCollision,
+  collisionFn: (x, z, radius) => {
+    if (scenario.checkCollision(x, z, radius)) return true;
+    if (ironThroneWorldAabbXZ && circleIntersectsAabbXZ(x, z, radius, ironThroneWorldAabbXZ)) return true;
+    return false;
+  },
   radius: 0.35,
   speed: MOVE_SPEED,
 });
@@ -201,13 +270,13 @@ function render(time = 0) {
   // Desenhar trono de ferro no final da sala
   if (ironThroneObj && ironThroneTexture) {
     // Posicionar trono no final da sala
-    const throneZ = scenario.params.corridorLength + scenario.params.roomSize - 2.0;
+    const throneZ = getThronePosZ();
     // Escala maior (1.5) + Rotação de 180° no eixo Y para virar o trono
     const throneModel = new Float32Array([
-      -1.5, 0, 0, 0,
-      0, 1.5, 0, 0,
-      0, 0, -1.5, 0,
-      0, 0, throneZ, 1,
+      -THRONE_SCALE, 0, 0, 0,
+      0, THRONE_SCALE, 0, 0,
+      0, 0, -THRONE_SCALE, 0,
+      THRONE_POS_X, 0, throneZ, 1,
     ]);
 
     setPhongMatrices(gl, locs, {
