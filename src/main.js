@@ -81,6 +81,10 @@ const posterImagePaths = [
   '../assets/houses/lannister-poster.png',
   '../assets/houses/baratheon-poster.png',
   '../assets/houses/targaryen-poster.png',
+  '../assets/houses/tyrell-poster.png',
+  '../assets/houses/arryn-poster.png',
+  '../assets/houses/greyjoy-poster.png',
+  '../assets/houses/martell-poster.png',
 ];
 
 let posterTextures = []; // Agora é um ARRAY de texturas
@@ -97,18 +101,56 @@ async function setupPosters() {
 }
 setupPosters();
 
-// 2. Definir onde cada pôster fica e QUAL textura usa (texIndex)
 const postersConfig = [
-  // Parede Esquerda 1 (Perto) - Usa textura 0
-  { x: -2.45, y: 1.8, z: 4.0, rotateY: Math.PI / 2, texIndex: 0 }, 
-  // Parede Esquerda 2 (Longe) - Usa textura 1
-  { x: -2.45, y: 1.8, z: 9.0, rotateY: Math.PI / 2, texIndex: 1 }, 
-  
-  // Parede Direita 1 (Perto) - Usa textura 2
-  { x: 2.45,  y: 1.8, z: 6.0, rotateY: -Math.PI / 2, texIndex: 2 },
-  // Parede Direita 2 (Longe) - Usa textura 3
-  { x: 2.45,  y: 1.8, z: 11.0, rotateY: -Math.PI / 2, texIndex: 3 },
+  // --- PAREDE ESQUERDA (x: -2.45) ---
+  { 
+    x: -2.45, y: 1.8, z: 4.0, rotateY: Math.PI / 2, texIndex: 0,
+    title: "Casa Stark",
+    info: "'O Inverno está Chegando'. Os protetores do Norte e senhores de Winterfell."
+  },
+  { 
+    x: -2.45, y: 1.8, z: 9.0, rotateY: Math.PI / 2, texIndex: 1,
+    title: "Casa Lannister",
+    info: "'Ouça-me Rugir'. Conhecidos por sua imensa riqueza e pelas minas de Rochedo Casterly."
+  },
+  { 
+    x: -2.45, y: 1.8, z: 14.0, rotateY: Math.PI / 2, texIndex: 4,
+    title: "Casa Tyrell",
+    info: "'Crescendo Fortes'. Senhores da Campina, sua sede é o castelo de Jardim de Cima."
+  },
+  { 
+    x: -2.45, y: 1.8, z: 19.0, rotateY: Math.PI / 2, texIndex: 5,
+    title: "Casa Arryn",
+    info: "'Tão Alto como a Honra'. Protetores do Vale, vivem no impenetrável Ninho da Águia."
+  },
+
+  // --- PAREDE DIREITA (x: 2.45) ---
+  { 
+    x: 2.45, y: 1.8, z: 6.5, rotateY: -Math.PI / 2, texIndex: 2,
+    title: "Casa Baratheon",
+    info: "'Nossa é a Fúria'. A linhagem que conquistou o Trono de Ferro após a rebelião."
+  },
+  { 
+    x: 2.45, y: 1.8, z: 11.5, rotateY: -Math.PI / 2, texIndex: 3,
+    title: "Casa Targaryen",
+    info: "'Fogo e Sangue'. Os últimos Senhores dos Dragões da antiga Valíria."
+  },
+  { 
+    x: 2.45, y: 1.8, z: 16.5, rotateY: -Math.PI / 2, texIndex: 6,
+    title: "Casa Greyjoy",
+    info: "'Nós Não Semeamos'. Senhores das Ilhas de Ferro, mestres dos mares e navios."
+  },
+  { 
+    x: 2.45, y: 1.8, z: 21.5, rotateY: -Math.PI / 2, texIndex: 7,
+    title: "Casa Martell",
+    info: "'Insubmissos, Não Curvados, Não Quebrados'. Senhores de Dorne, nunca conquistados por Aegon."
+  },
 ];
+
+// Pegar referências do HTML
+const uiElement = document.getElementById("poster-ui");
+const uiTitle = document.getElementById("poster-title");
+const uiText = document.getElementById("poster-text");
 
 // Carregar trono OBJ e textura
 let ironThroneObj = null;
@@ -228,10 +270,6 @@ function render(time = 0) {
     gl.drawArrays(gl.TRIANGLES, 0, part.vao.vertexCount);
   }
 
-// --- DENTRO DO RENDER LOOP ---
-
-  // ... depois de desenhar as 'parts' do cenário ...
-
   // --- DESENHAR PÔSTERES ---
   // Verifica se o VAO existe e se temos texturas carregadas no array
   if (posterVao && posterTextures.length > 0) {
@@ -275,6 +313,31 @@ function render(time = 0) {
       // Desenha este pôster específico com a textura vinculada acima
       gl.drawArrays(gl.TRIANGLES, 0, posterVao.vertexCount);
     }
+  }
+
+  // --- LÓGICA DE PROXIMIDADE ---
+  let closestPoster = null;
+  const PROXIMITY_THRESHOLD = 2.0; // Distância de 2 metros para ativar
+
+  for (const p of postersConfig) {
+    // Calcula a distância entre a câmera e o pôster
+    const dx = p.x - camera.position[0];
+    const dz = p.z - camera.position[2];
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    if (distance < PROXIMITY_THRESHOLD) {
+      closestPoster = p;
+      break; // Encontrou um perto, não precisa checar os outros
+    }
+  }
+
+  // Atualiza a UI baseada no pôster mais próximo
+  if (closestPoster) {
+    uiTitle.innerText = closestPoster.title;
+    uiText.innerText = closestPoster.info;
+    uiElement.style.display = "block";
+  } else {
+    uiElement.style.display = "none";
   }
 
   // Desenhar trono de ferro no final da sala
