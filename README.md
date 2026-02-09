@@ -95,7 +95,7 @@ http-server -p 8000
 
 ### 3. Abra no navegador
 
-Acesse: `http://localhost:8000/scene.html`
+Acesse: `http://localhost:8000/intro.html`
 
 * Movimentação: **W/A/S/D**
 * Olhar ao redor: **Mouse**
