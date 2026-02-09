@@ -173,6 +173,34 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
   return { params, meshes, checkCollision };
 }
 
+export function createPosterMesh() {
+  const positions = new Float32Array([
+    -0.5, -0.5,  0.0,  // Inferior Esquerda
+     0.5, -0.5,  0.0,  // Inferior Direita
+     0.5,  0.5,  0.0,  // Superior Direita
+    -0.5, -0.5,  0.0,  // Inferior Esquerda
+     0.5,  0.5,  0.0,  // Superior Direita
+    -0.5,  0.5,  0.0,  // Superior Esquerda
+  ]);
+
+  const normals = new Float32Array([
+    0, 0, 1,  0, 0, 1,  0, 0, 1,
+    0, 0, 1,  0, 0, 1,  0, 0, 1,
+  ]);
+
+  const texCoords = new Float32Array([
+    0, 0,   1, 0,   1, 1,
+    0, 0,   1, 1,   0, 1,
+  ]);
+
+  return { 
+    positions, 
+    normals, 
+    texCoords, 
+    vertexCount: 6 // ESSENCIAL: sem isso o drawArrays desenha zero
+  };
+}
+
 export function createVAO(gl, mesh) {
   const vao = gl.createVertexArray();
   gl.bindVertexArray(vao);
@@ -212,20 +240,27 @@ export function createVAO(gl, mesh) {
  * @param {string} url - Caminho da imagem
  * @returns {WebGLTexture} Textura carregada
  */
+// No final do scenario.js
+
 export function loadTexture(gl, url) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
-  // Textura temporária de 1x1 pixel enquanto carrega
+  // Textura temporária cinza (placeholder)
   const pixel = new Uint8Array([128, 128, 128, 255]);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
 
   const image = new Image();
   image.onload = () => {
     gl.bindTexture(gl.TEXTURE_2D, texture);
+    
+    // --- A CORREÇÃO MÁGICA AQUI ---
+    // Diz ao WebGL para inverter o eixo Y da imagem ao desembalar
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); 
+    // ------------------------------
+
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     
-    // Verifica se a imagem é potência de 2
     if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
       gl.generateMipmap(gl.TEXTURE_2D);
     } else {
@@ -235,7 +270,6 @@ export function loadTexture(gl, url) {
     }
   };
   image.src = url;
-
   return texture;
 }
 

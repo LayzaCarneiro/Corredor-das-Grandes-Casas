@@ -12,7 +12,7 @@ import {
   setPhongSpotLight,
   normalMatrixFromMat4,
 } from './phong.js';
-import { createCorridorRoomScenario, createVAO, loadTexture } from './scenario.js';
+import { createCorridorRoomScenario, createVAO, loadTexture, createPosterMesh } from './scenario.js';
 import { loadOBJ } from './obj.js';
 
 const canvas = document.getElementById("glCanvas");
@@ -73,6 +73,41 @@ const parts = [
     material: { baseColor: [0.35, 0.20, 0.10], ka: 0.35, kd: 0.65, ks: 0.18, shininess: 28 },
     useTexture: false,
   },
+];
+
+// --- CONFIGURAÇÃO DOS PÔSTERES ---
+const posterImagePaths = [
+  '../assets/houses/stark-poster.png',
+  '../assets/houses/lannister-poster.png',
+  '../assets/houses/baratheon-poster.png',
+  '../assets/houses/targaryen-poster.png',
+];
+
+let posterTextures = []; // Agora é um ARRAY de texturas
+let posterVao = null;
+
+async function setupPosters() {
+  // Carrega todas as texturas e guarda no array
+  // O .map cria um novo array com o resultado de loadTexture para cada caminho
+  posterTextures = posterImagePaths.map(path => loadTexture(gl, path));
+
+  const mesh = createPosterMesh();
+  posterVao = createVAO(gl, mesh);
+  console.log("Posters setup ok");
+}
+setupPosters();
+
+// 2. Definir onde cada pôster fica e QUAL textura usa (texIndex)
+const postersConfig = [
+  // Parede Esquerda 1 (Perto) - Usa textura 0
+  { x: -2.45, y: 1.8, z: 4.0, rotateY: Math.PI / 2, texIndex: 0 }, 
+  // Parede Esquerda 2 (Longe) - Usa textura 1
+  { x: -2.45, y: 1.8, z: 9.0, rotateY: Math.PI / 2, texIndex: 1 }, 
+  
+  // Parede Direita 1 (Perto) - Usa textura 2
+  { x: 2.45,  y: 1.8, z: 6.0, rotateY: -Math.PI / 2, texIndex: 2 },
+  // Parede Direita 2 (Longe) - Usa textura 3
+  { x: 2.45,  y: 1.8, z: 11.0, rotateY: -Math.PI / 2, texIndex: 3 },
 ];
 
 // Carregar trono OBJ e textura
@@ -191,6 +226,55 @@ function render(time = 0) {
     gl.uniform1i(locs.uUseTexture, 0); // Sem textura para partes do cenário
     gl.bindVertexArray(part.vao.vao);
     gl.drawArrays(gl.TRIANGLES, 0, part.vao.vertexCount);
+  }
+
+// --- DENTRO DO RENDER LOOP ---
+
+  // ... depois de desenhar as 'parts' do cenário ...
+
+  // --- DESENHAR PÔSTERES ---
+  // Verifica se o VAO existe e se temos texturas carregadas no array
+  if (posterVao && posterTextures.length > 0) {
+    gl.uniform1i(locs.uUseTexture, 1); // Ativa modo textura
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1i(locs.uTexture, 0);
+
+    // Material padrão do papel
+    setPhongMaterial(gl, locs, { 
+        baseColor: [1, 1, 1], ka: 0.4, kd: 0.8, ks: 0.1, shininess: 5 
+    });
+    
+    // Vincula o VAO uma vez só (a geometria é a mesma para todos)
+    gl.bindVertexArray(posterVao.vao);
+
+    for (const p of postersConfig) {
+      // --- O PULO DO GATO: VINCULAR A TEXTURA CORRETA ---
+      // Pega a textura do array baseado no índice definido na config
+      const textureToUse = posterTextures[p.texIndex];
+      
+      // Segurança: só vincula se a textura já foi criada pelo loadTexture
+      if (textureToUse) {
+          gl.bindTexture(gl.TEXTURE_2D, textureToUse);
+      }
+
+      // Criar matriz de modelo (Escala e Posição)
+      const model = new Float32Array([
+        1.2 * Math.cos(p.rotateY), 0, -1.2 * Math.sin(p.rotateY), 0,
+        0, 1.6, 0, 0,
+        1.2 * Math.sin(p.rotateY), 0, 1.2 * Math.cos(p.rotateY), 0,
+        p.x, p.y, p.z, 1
+      ]);
+
+      setPhongMatrices(gl, locs, {
+        model: model,
+        view,
+        projection,
+        normalMatrix: normalMatrixFromMat4(model),
+      });
+
+      // Desenha este pôster específico com a textura vinculada acima
+      gl.drawArrays(gl.TRIANGLES, 0, posterVao.vertexCount);
+    }
   }
 
   // Desenhar trono de ferro no final da sala
