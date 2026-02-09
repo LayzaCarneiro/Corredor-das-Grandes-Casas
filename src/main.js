@@ -33,11 +33,9 @@ const locs = getPhongLocations(gl, program);
 // Cenário: corredor longo + sala pequena.
 // Meta: ~10s caminhando em linha reta até a sala.
 const MOVE_SPEED = 3.0; // unidades/segundo
-const TARGET_TIME_TO_ROOM = 10.0; // segundos
 const START_Z = 1.5;
 // Extra para deixar o corredor bem mais longo (aumenta o tempo até a sala)
-const CORRIDOR_EXTRA = 8.0;
-const corridorLength = Math.max(10, MOVE_SPEED * TARGET_TIME_TO_ROOM + START_Z + CORRIDOR_EXTRA);
+const corridorLength = 25
 
 const scenario = createCorridorRoomScenario(gl, {
   corridorWidth: 5,
