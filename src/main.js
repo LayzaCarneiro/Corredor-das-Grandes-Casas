@@ -12,7 +12,7 @@ import {
   setPhongSpotLight,
   normalMatrixFromMat4,
 } from './phong.js';
-import { createCorridorRoomScenario, createVAO, loadTexture } from './scenario.js';
+import { createCorridorRoomScenario, createVAO, loadTexture, createPosterMesh } from './scenario.js';
 import { loadOBJ } from './obj.js';
 
 const canvas = document.getElementById("glCanvas");
@@ -33,11 +33,9 @@ const locs = getPhongLocations(gl, program);
 // Cenário: corredor longo + sala pequena.
 // Meta: ~10s caminhando em linha reta até a sala.
 const MOVE_SPEED = 3.0; // unidades/segundo
-const TARGET_TIME_TO_ROOM = 10.0; // segundos
 const START_Z = 1.5;
 // Extra para deixar o corredor bem mais longo (aumenta o tempo até a sala)
-const CORRIDOR_EXTRA = 8.0;
-const corridorLength = Math.max(10, MOVE_SPEED * TARGET_TIME_TO_ROOM + START_Z + CORRIDOR_EXTRA);
+const corridorLength = 25
 
 const scenario = createCorridorRoomScenario(gl, {
   corridorWidth: 5,
@@ -80,9 +78,141 @@ const parts = [
   },
 ];
 
+// --- CONFIGURAÇÃO DOS PÔSTERES ---
+const posterImagePaths = [
+  '../assets/houses/stark-poster.png',
+  '../assets/houses/lannister-poster.png',
+  '../assets/houses/baratheon-poster.png',
+  '../assets/houses/targaryen-poster.png',
+  '../assets/houses/tyrell-poster.png',
+  '../assets/houses/arryn-poster.png',
+  '../assets/houses/greyjoy-poster.png',
+  '../assets/houses/martell-poster.png',
+];
+
+let posterTextures = []; // Agora é um ARRAY de texturas
+let posterVao = null;
+
+async function setupPosters() {
+  // Carrega todas as texturas e guarda no array
+  // O .map cria um novo array com o resultado de loadTexture para cada caminho
+  posterTextures = posterImagePaths.map(path => loadTexture(gl, path));
+
+  const mesh = createPosterMesh();
+  posterVao = createVAO(gl, mesh);
+  console.log("Posters setup ok");
+}
+setupPosters();
+
+const postersConfig = [
+  // --- PAREDE ESQUERDA (x: -2.45) ---
+  { 
+    x: -2.45, y: 1.8, z: 4.0, rotateY: Math.PI / 2, texIndex: 0,
+    title: "Casa Stark",
+    info: "'O Inverno está Chegando'. Os protetores do Norte e senhores de Winterfell."
+  },
+  { 
+    x: -2.45, y: 1.8, z: 9.0, rotateY: Math.PI / 2, texIndex: 1,
+    title: "Casa Lannister",
+    info: "'Ouça-me Rugir'. Conhecidos por sua imensa riqueza e pelas minas de Rochedo Casterly."
+  },
+  { 
+    x: -2.45, y: 1.8, z: 14.0, rotateY: Math.PI / 2, texIndex: 4,
+    title: "Casa Tyrell",
+    info: "'Crescendo Fortes'. Senhores da Campina, sua sede é o castelo de Jardim de Cima."
+  },
+  { 
+    x: -2.45, y: 1.8, z: 19.0, rotateY: Math.PI / 2, texIndex: 5,
+    title: "Casa Arryn",
+    info: "'Tão Alto como a Honra'. Protetores do Vale, vivem no impenetrável Ninho da Águia."
+  },
+
+  // --- PAREDE DIREITA (x: 2.45) ---
+  { 
+    x: 2.45, y: 1.8, z: 6.5, rotateY: -Math.PI / 2, texIndex: 2,
+    title: "Casa Baratheon",
+    info: "'Nossa é a Fúria'. A linhagem que conquistou o Trono de Ferro após a rebelião."
+  },
+  { 
+    x: 2.45, y: 1.8, z: 11.5, rotateY: -Math.PI / 2, texIndex: 3,
+    title: "Casa Targaryen",
+    info: "'Fogo e Sangue'. Os últimos Senhores dos Dragões da antiga Valíria."
+  },
+  { 
+    x: 2.45, y: 1.8, z: 16.5, rotateY: -Math.PI / 2, texIndex: 6,
+    title: "Casa Greyjoy",
+    info: "'Nós Não Semeamos'. Senhores das Ilhas de Ferro, mestres dos mares e navios."
+  },
+  { 
+    x: 2.45, y: 1.8, z: 21.5, rotateY: -Math.PI / 2, texIndex: 7,
+    title: "Casa Martell",
+    info: "'Insubmissos, Não Curvados, Não Quebrados'. Senhores de Dorne, nunca conquistados por Aegon."
+  },
+];
+
+// Pegar referências do HTML
+const uiElement = document.getElementById("poster-ui");
+const uiTitle = document.getElementById("poster-title");
+const uiText = document.getElementById("poster-text");
+
 // Carregar trono OBJ e textura
 let ironThroneObj = null;
 let ironThroneTexture = null;
+let ironThroneWorldAabbXZ = null;
+
+const THRONE_SCALE = 1.5;
+const THRONE_POS_X = 0.0;
+function getThronePosZ() {
+  return scenario.params.corridorLength + scenario.params.roomSize - 2.0;
+}
+
+function computeLocalAabbXZ(positions) {
+  let minX = Infinity, maxX = -Infinity;
+  let minZ = Infinity, maxZ = -Infinity;
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i];
+    const z = positions[i + 2];
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (z < minZ) minZ = z;
+    if (z > maxZ) maxZ = z;
+  }
+  return { minX, maxX, minZ, maxZ };
+}
+
+function shrinkAabbXZ(aabb, factor = 0.85) {
+  const cx = (aabb.minX + aabb.maxX) * 0.5;
+  const cz = (aabb.minZ + aabb.maxZ) * 0.5;
+  const ex = (aabb.maxX - aabb.minX) * 0.5 * factor;
+  const ez = (aabb.maxZ - aabb.minZ) * 0.5 * factor;
+  return { minX: cx - ex, maxX: cx + ex, minZ: cz - ez, maxZ: cz + ez };
+}
+
+function transformAabbXZ(localAabb, { scale, tx, tz }) {
+  // Model do trono usa escala negativa em X/Z (rotação 180° no Y).
+  const sx = -scale;
+  const sz = -scale;
+
+  const x1 = sx * localAabb.minX + tx;
+  const x2 = sx * localAabb.maxX + tx;
+  const z1 = sz * localAabb.minZ + tz;
+  const z2 = sz * localAabb.maxZ + tz;
+
+  return {
+    minX: Math.min(x1, x2),
+    maxX: Math.max(x1, x2),
+    minZ: Math.min(z1, z2),
+    maxZ: Math.max(z1, z2),
+  };
+}
+
+function circleIntersectsAabbXZ(cx, cz, r, aabb) {
+  const closestX = Math.max(aabb.minX, Math.min(cx, aabb.maxX));
+  const closestZ = Math.max(aabb.minZ, Math.min(cz, aabb.maxZ));
+  const dx = cx - closestX;
+  const dz = cz - closestZ;
+  return (dx * dx + dz * dz) < (r * r);
+}
 
 // Carregar espada OBJ e textura para primeira pessoa
 let swordObj = null;
@@ -103,6 +233,16 @@ async function loadIronThrone() {
       useTexture: true,
     };
     ironThroneTexture = loadTexture(gl, 'models/IronThrone_Diff.vtf.png');
+
+    // Calcula AABB de colisão em XZ com base no OBJ (no espaço local) e aplica o mesmo
+    // transform usado no render (escala + rotação 180° via escala negativa + translação).
+    const localAabb = shrinkAabbXZ(computeLocalAabbXZ(objData.positions), 0.82);
+    ironThroneWorldAabbXZ = transformAabbXZ(localAabb, {
+      scale: THRONE_SCALE,
+      tx: THRONE_POS_X,
+      tz: getThronePosZ(),
+    });
+
     console.log('Trono de ferro carregado com sucesso');
   } catch (error) {
     console.error('Erro ao carregar trono:', error);
@@ -146,7 +286,11 @@ document.addEventListener('click', () => {
 
 const camera = new Camera(canvas, {
   position: [0, 1.6, START_Z],
-  collisionFn: scenario.checkCollision,
+  collisionFn: (x, z, radius) => {
+    if (scenario.checkCollision(x, z, radius)) return true;
+    if (ironThroneWorldAabbXZ && circleIntersectsAabbXZ(x, z, radius, ironThroneWorldAabbXZ)) return true;
+    return false;
+  },
   radius: 0.35,
   speed: MOVE_SPEED,
 });
@@ -306,16 +450,86 @@ function render(time = 0) {
     gl.drawArrays(gl.TRIANGLES, 0, part.vao.vertexCount);
   }
 
+  // --- DESENHAR PÔSTERES ---
+  // Verifica se o VAO existe e se temos texturas carregadas no array
+  if (posterVao && posterTextures.length > 0) {
+    gl.uniform1i(locs.uUseTexture, 1); // Ativa modo textura
+    gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1i(locs.uTexture, 0);
+
+    // Material padrão do papel
+    setPhongMaterial(gl, locs, { 
+        baseColor: [1, 1, 1], ka: 0.4, kd: 0.8, ks: 0.1, shininess: 5 
+    });
+    
+    // Vincula o VAO uma vez só (a geometria é a mesma para todos)
+    gl.bindVertexArray(posterVao.vao);
+
+    for (const p of postersConfig) {
+      // --- O PULO DO GATO: VINCULAR A TEXTURA CORRETA ---
+      // Pega a textura do array baseado no índice definido na config
+      const textureToUse = posterTextures[p.texIndex];
+      
+      // Segurança: só vincula se a textura já foi criada pelo loadTexture
+      if (textureToUse) {
+          gl.bindTexture(gl.TEXTURE_2D, textureToUse);
+      }
+
+      // Criar matriz de modelo (Escala e Posição)
+      const model = new Float32Array([
+        1.2 * Math.cos(p.rotateY), 0, -1.2 * Math.sin(p.rotateY), 0,
+        0, 1.6, 0, 0,
+        1.2 * Math.sin(p.rotateY), 0, 1.2 * Math.cos(p.rotateY), 0,
+        p.x, p.y, p.z, 1
+      ]);
+
+      setPhongMatrices(gl, locs, {
+        model: model,
+        view,
+        projection,
+        normalMatrix: normalMatrixFromMat4(model),
+      });
+
+      // Desenha este pôster específico com a textura vinculada acima
+      gl.drawArrays(gl.TRIANGLES, 0, posterVao.vertexCount);
+    }
+  }
+
+  // --- LÓGICA DE PROXIMIDADE ---
+  let closestPoster = null;
+  const PROXIMITY_THRESHOLD = 2.0; // Distância de 2 metros para ativar
+
+  for (const p of postersConfig) {
+    // Calcula a distância entre a câmera e o pôster
+    const dx = p.x - camera.position[0];
+    const dz = p.z - camera.position[2];
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    if (distance < PROXIMITY_THRESHOLD) {
+      closestPoster = p;
+      break; // Encontrou um perto, não precisa checar os outros
+    }
+  }
+
+  // Atualiza a UI baseada no pôster mais próximo
+  if (closestPoster) {
+    uiTitle.innerText = closestPoster.title;
+    uiText.innerText = closestPoster.info;
+    uiElement.style.display = "block";
+  } else {
+    uiElement.style.display = "none";
+  }
+
   // Desenhar trono de ferro no final da sala
   if (ironThroneObj && ironThroneTexture) {
     // Posicionar trono no final da sala
-    const throneZ = scenario.params.corridorLength + scenario.params.roomSize - 2.0;
+    const throneZ = getThronePosZ();
     // Escala maior (1.5) + Rotação de 180° no eixo Y para virar o trono
     const throneModel = new Float32Array([
-      -1.5, 0, 0, 0,
-      0, 1.5, 0, 0,
-      0, 0, -1.5, 0,
-      0, 0, throneZ, 1,
+      -THRONE_SCALE, 0, 0, 0,
+      0, THRONE_SCALE, 0, 0,
+      0, 0, -THRONE_SCALE, 0,
+      THRONE_POS_X, 0, throneZ, 1,
     ]);
 
     setPhongMatrices(gl, locs, {
