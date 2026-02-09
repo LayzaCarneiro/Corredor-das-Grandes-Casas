@@ -141,7 +141,7 @@ Corredor-das-Grandes-Casas/
 | Pacote                 | Versão | Descrição                                       |
 | ---------------------- | ------ | ----------------------------------------------- |
 | `WebGL 2.0`            | n/a    | Motor gráfico do navegador para renderização 3D |
-| `gl-matrix` (opcional) | ≥3.4   | Matrizes e operações vetoriais (se usadas)      |
+| `gl-matrix` | ≥3.4   | Matrizes e operações vetoriais       |
 
 > Todas as bibliotecas necessárias são carregadas via `<script>` ou estão incluídas no código.
 
