@@ -8,13 +8,16 @@ Projeto acadêmico da disciplina de **Computação Gráfica**, desenvolvido para
 
 ## Descrição do Projeto
 
-O projeto permite explorar um **corredor 3D estilizado**, com modelos interativos e posters informativos sobre casas de fantasia:
+O projeto permite explorar um **corredor 3D estilizado**, inspirado no universo de **Game of Thrones**, onde diferentes casas nobres lutam pelo Trono de Ferro e pelo controle dos Sete Reinos de Westeros. O cenário é repleto de detalhes que remetem à série, incluindo posters informativos sobre as casas.
 
 * Corredor com piso, paredes e tapete renderizados via WebGL.
 * Posters 3D com informações exibidas dinamicamente quando o usuário se aproxima.
 * Modelos 3D detalhados da **Espada** e do **Trono de Ferro**, posicionados no cenário.
 * Movimento em primeira pessoa.
 * Interações simples de colisão para impedir que o usuário atravesse objetos sólidos.
+* Carregamento de modelos OBJ implementado manualmente via obj.js, sem bibliotecas de terceiros.
+
+> Nota: O projeto utiliza WebGL puro, sem uso de Three.js ou motores gráficos de alto nível.
 
 ---
 
@@ -23,7 +26,7 @@ O projeto permite explorar um **corredor 3D estilizado**, com modelos interativo
 | Recurso                           | Implementação no projeto                                                                       |
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
 | **Renderização 3D**               | Geometria do cenário, posters e modelos carregados via OBJ e texturas.                         |
-| **Shading Phong**                 | Luz ambiente, difusa e especular aplicada a todos os objetos com normal matrix.                |
+| **Iluminação Phong**                 | Luz ambiente, difusa e especular aplicada a todos os objetos com normal matrix.                |
 | **Transformações geométricas**    | Escala, rotação e translação aplicadas a modelos e objetos da cena.                            |
 | **Câmera em primeira pessoa**     | Movimento via teclado (W/A/S/D), mouse para olhar em volta.                                    |
 | **Interações e colisão**          | Limites de paredes, colisão com trono e detecção de proximidade de posters.                    |
@@ -44,6 +47,7 @@ O projeto permite explorar um **corredor 3D estilizado**, com modelos interativo
 5. **Exploração do Trono** – Colisão detecta limites do trono, mantendo a experiência realista.
 6. **Visualização de Objetos** – Espada em primeira pessoa com efeito de bob, posters interativos e iluminação aplicada.
 
+> Categoria do projeto: Passeio Virtual 3D.
 ---
 
 ## Screenshots
@@ -150,13 +154,17 @@ Corredor-das-Grandes-Casas/
   * `throne.js` → Trono de ferro com colisão
   * `scene.js` → Construção do cenário e VAOs do corredor
 
+A documentação completa do projeto está disponível em:
+
+- **[docs/documentacao.md](docs/documentacao.md)** – Documentação técnica da engine e sistema de telas
+
 ---
 
 ## Slides e Vídeo Demonstrativo
 
 Para apresentar o projeto, preparamos materiais visuais e um vídeo demonstrativo:
 
-* **Slides da Apresentação:** [Clique aqui para abrir os slides](docs/slides_corredor.pdf)  
+* **Slides da Apresentação:** [Clique aqui para abrir os slides](https://www.canva.com/design/DAHAxVZeDtk/vy6yiGYpLl-cCIALqd3BIQ/edit?utm_content=DAHAxVZeDtk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)  
 * **Vídeo Demonstrativo:** [Assista no YouTube](https://youtu.be/SEU_VIDEO_DEMO)  
 
 ---
