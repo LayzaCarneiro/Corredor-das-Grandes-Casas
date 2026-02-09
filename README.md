@@ -1,3 +1,6 @@
+<img width="1920" height="370" alt="Captura de Tela 2026-02-09 às 04 24 48" src="https://github.com/user-attachments/assets/9007db99-7bc6-4f2e-904a-9773b13daeac" />
+
+
 # Corredor das Grandes Casas - Game of Thrones 🏰
 
 **Simulação interativa 3D desenvolvida em JavaScript com WebGL**, explorando manipulação de modelos 3D, iluminação Phong, shaders, colisão e interação em primeira pessoa.
