@@ -108,10 +108,10 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
   addFloor(floor, -Wc / 2, Wc / 2, 0, Lc, 0);
   addFloor(floor, -S / 2, S / 2, Lc, Lc + S, 0);
 
-  // Tapete vermelho: do começo do passeio até a entrada da sala (z = Lc)
+  // Tapete vermelho: do começo do passeio até o fundo da sala
   // Fica levemente acima do piso para não "brigar" no depth.
   const cw = Math.min(params.carpetWidth, Wc - 0.4);
-  addFloor(carpet, -cw / 2, cw / 2, 0, Lc, params.carpetOffsetY);
+  addFloor(carpet, -cw / 2, cw / 2, 0, Lc + S, params.carpetOffsetY);
 
   // Teto
   addCeiling(ceiling, -Wc / 2, Wc / 2, 0, Lc, H);

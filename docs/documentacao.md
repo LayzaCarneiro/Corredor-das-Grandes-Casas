@@ -19,6 +19,10 @@ Documento focado no código: responsabilidades de cada módulo, parâmetros/reto
 - `src/phong.js`: shaders (vertex/fragment) e funções utilitárias para setar uniforms do Phong.
 - `src/math.js`: matemática mínima (perspectiva, normalize, cross).
 - `src/shaders.js`: compilação/linkagem de shaders (helper genérico).
+- `src/obj.js`: loader de OBJ feito do zero (v/vn/vt + triangulação) usado para importar o Trono.
+- `models/`: assets 3D (ex.: `iron_throne.obj` + textura `IronThrone_Diff.vtf.png`).
+- `audio/`: áudio de fundo tocado durante o passeio.
+- `README_OBJ.md` e `GUIA_RAPIDO_OBJ.md`: notas/guia de apoio sobre importação OBJ.
 
 ---
 
@@ -43,6 +47,7 @@ O loop de execução acontece em `src/main.js` com `requestAnimationFrame(render
 4. Calcular matriz de view (`camera.getViewMatrix()`).
 5. Configurar iluminação (Phong) e material.
 6. Renderizar cada “parte” do cenário (piso, paredes, teto, porta) chamando `gl.drawArrays`.
+7. (Opcional) Renderizar o **Trono de Ferro** importado via OBJ, com textura.
 
 ### 2.3 Controles
 
@@ -155,6 +160,7 @@ Este arquivo contém:
 **Entradas (atributos):**
 - `layout(location=0) in vec3 aPosition`
 - `layout(location=1) in vec3 aNormal`
+- `layout(location=2) in vec2 aTexCoord` (opcional; usado quando há textura)
 
 **Uniforms:**
 - `uModel`, `uView`, `uProjection`: matrizes 4×4
@@ -163,6 +169,7 @@ Este arquivo contém:
 **Saídas para o fragment shader:**
 - `vWorldPos`: posição do fragmento em mundo (calculada como `uModel * vec4(aPosition,1)`)
 - `vWorldNormal`: normal em mundo (normalizada após multiplicação por `uNormalMatrix`)
+- `vTexCoord`: coordenada de textura (replicada do atributo)
 
 > A normal matrix é necessária porque normal não deve ser transformada com a mesma matriz 4×4 do modelo quando há escala não-uniforme.
 
@@ -183,6 +190,15 @@ Onde:
 - `n` é a normal do fragmento em mundo.
 - `v` é o vetor direção do fragmento para a câmera (`normalize(uCameraPos - vWorldPos)`).
 - `l` depende do tipo de luz.
+
+#### 5.2.0 Cor base com/sem textura
+
+O shader suporta material por cor sólida ou por textura:
+
+- Se `uUseTexture == 0`: `g_baseColor = uBaseColor`.
+- Se `uUseTexture == 1`: `g_baseColor = texture(uTexture, vTexCoord).rgb`.
+
+Isso permite manter o mesmo pipeline de iluminação (Phong/Blinn‑Phong), apenas trocando a fonte da cor base.
 
 #### 5.2.1 Luz Direcional (`DirectionalLight`)
 
@@ -393,7 +409,7 @@ Essas funções não são exportadas, mas são o “motor” do cenário.
 **Tapete vermelho (objeto sólido):**
 
 - O tapete é um mesh separado (`meshes.carpet`) para permitir **material próprio** (vermelho sólido).
-- Ele vai do início do passeio até a entrada da sala, cobrindo `z ∈ [0, Lc]`.
+- Ele vai do início do passeio até o fundo da sala (chegando no trono), cobrindo `z ∈ [0, Lc + S]`.
 - Ele fica levemente acima do piso (`carpetOffsetY`, default `0.01`) para evitar “z-fighting” (briga no depth buffer) com o mesh do piso.
 
 #### `checkCollision(x, z, radius = 0.35)`
@@ -410,12 +426,28 @@ Essas funções não são exportadas, mas são o “motor” do cenário.
 - **Parâmetros**
   - `mesh.positions`: `Float32Array` (vec3)
   - `mesh.normals`: `Float32Array` (vec3)
+  - `mesh.texCoords` (opcional): `Float32Array` (vec2) — quando presente, habilita `layout(location=2)`.
 - **Retorno**: `{ vao, vertexCount }`.
 - **Comportamento**
   - Cria VAO.
   - Seta `aPosition` em `location=0`.
   - Seta `aNormal` em `location=1`.
+  - Se existir `texCoords`, seta `aTexCoord` em `location=2`.
   - O desenho é feito com `gl.drawArrays(gl.TRIANGLES, 0, vertexCount)`.
+
+### 7.4 `loadTexture(gl, url)`
+
+- **Parâmetros**
+  - `gl`: contexto WebGL2
+  - `url`: caminho da imagem (ex.: `models/IronThrone_Diff.vtf.png`)
+- **Retorno:** `WebGLTexture`.
+- **Comportamento**
+  - Cria uma textura e inicializa com um pixel 1×1 (placeholder) enquanto a imagem carrega.
+  - Quando a imagem termina de carregar:
+    - Faz upload para GPU (`texImage2D`).
+    - Se for potência de 2, gera mipmaps; caso contrário, configura `CLAMP_TO_EDGE` e `LINEAR`.
+
+> Essa função é usada no `src/main.js` para aplicar textura no Trono de Ferro.
 
 ---
 
@@ -434,6 +466,12 @@ Essas funções não são exportadas, mas são o “motor” do cenário.
 - `CORRIDOR_EXTRA`: ajuste fino do comprimento.
 - `FOV_DEG`: campo de visão vertical em graus.
 
+### 8.2.1 Assets e caminhos usados no runtime
+
+- Modelo OBJ do trono: `models/iron_throne.obj`
+- Textura do trono: `models/IronThrone_Diff.vtf.png`
+- Áudio de fundo: `audio/YTDown.com_YouTube_Game-of-Thrones-Tema-de-Abertura-Oppenin_Media_8wYhc8xpBkc_001_1080p.mp4`
+
 ### 8.3 `render(time)`
 
 - **Parâmetros:** `time` em ms (fornecido pelo `requestAnimationFrame`).
@@ -451,6 +489,73 @@ Essas funções não são exportadas, mas são o “motor” do cenário.
   6. Renderiza as partes do cenário, cada uma com seu material.
      - Partes típicas (na ordem de desenho): `floor`, `carpet`, `walls`, `ceiling`, `door`.
      - O tapete (`carpet`) usa material vermelho sólido e é desenhado separado do piso para não “tingir” o chão todo e para poder controlar o brilho/reflectância de forma independente.
+  7. Se o trono já foi carregado, desenha o OBJ com textura habilitada (`uUseTexture=1`).
+
+### 8.4 Importação e render do Trono de Ferro (OBJ + textura)
+
+O `src/main.js` carrega o trono de forma assíncrona:
+
+- `loadOBJ('models/iron_throne.obj')` lê o arquivo, triangula faces e retorna buffers (`positions`, `normals`, `texCoords`).
+- `createVAO(gl, objData)` cria VAO incluindo `aTexCoord` (location 2), quando disponível.
+- `loadTexture(gl, 'models/IronThrone_Diff.vtf.png')` carrega a textura do trono.
+
+**Transform no mundo:** o trono é desenhado no final da sala com uma matriz de modelo que aplica:
+
+- escala `THRONE_SCALE` (no código atual: `1.5`)
+- “rotação” de 180° em Y via escala negativa em X e Z
+- translação em Z para o fundo da sala (`getThronePosZ()`)
+
+> O trono é desenhado após as partes do cenário e usa `uUseTexture=1` para que a cor base venha da textura.
+
+### 8.5 Música de fundo
+
+O áudio é configurado via `new Audio(...)`:
+
+- `loop = true` para repetir.
+- `volume = 0.3` para não dominar a cena.
+
+**Autoplay no browser:** para respeitar as políticas de autoplay, o `play()` é acionado apenas após interação do usuário:
+
+- Listener de `click` no `document` com `{ once: true }`.
+- Se falhar, o erro é logado no console.
+
+### 8.6 Colisão com o Trono de Ferro
+
+Além da colisão do cenário (`scenario.checkCollision`), existe uma colisão extra para bloquear atravessar o trono:
+
+- Calcula um AABB no plano XZ a partir das posições do OBJ (`computeLocalAabbXZ`).
+- Reduz levemente a caixa (`shrinkAabbXZ`) para evitar uma colisão “grande demais” (ajuste fino).
+- Aplica o mesmo transform do render para obter o AABB em mundo (`transformAabbXZ`).
+- Teste de colisão do jogador (círculo no XZ) contra a caixa (`circleIntersectsAabbXZ`).
+
+No construtor da câmera, `collisionFn` vira um wrapper:
+
+- Se bater no cenário, bloqueia.
+- Se o AABB do trono já estiver disponível e houver interseção, bloqueia.
+
+> Observação: a colisão do trono passa a valer assim que o OBJ termina de carregar (normalmente muito antes de o jogador chegar ao fundo da sala).
+
+### 8.7 Loader OBJ (`src/obj.js`)
+
+O projeto inclui um loader de OBJ implementado “na mão”, sem bibliotecas externas.
+
+- **Entrada:** arquivo `.obj` carregado via `fetch(url)`.
+- **Diretivas suportadas:**
+  - `v x y z` (vértices)
+  - `vn x y z` (normais)
+  - `vt u v` (coord. de textura)
+  - `f ...` (faces)
+- **Faces:** aceita `v`, `v/vt`, `v//vn`, `v/vt/vn`.
+- **Triangulação:** faces com mais de 3 vértices viram triângulos via “fan triangulation”.
+
+**Saída (`buildGeometry`)**
+
+- `positions`: `Float32Array` (vec3)
+- `normals`: `Float32Array` (vec3)
+- `texCoords`: `Float32Array` (vec2)
+- `vertexCount`: `positions.length / 3`
+
+Se o OBJ não traz `vn`, o loader calcula normais por face (`calculateNormals`).
 
 ---
 
