@@ -56,6 +56,11 @@ const parts = [
     useTexture: false,
   },
   {
+    name: 'carpet',
+    vao: createVAO(gl, scenario.meshes.carpet),
+    material: { baseColor: [0.75, 0.08, 0.10], ka: 0.35, kd: 0.85, ks: 0.05, shininess: 8 },
+  },
+  {
     name: 'walls',
     vao: createVAO(gl, scenario.meshes.walls),
     material: { baseColor: [0.45, 0.45, 0.48], ka: 0.25, kd: 0.7, ks: 0.15, shininess: 22 },

@@ -84,6 +84,8 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
     doorWidth: cfg.doorWidth ?? 2.2,
     doorHeight: cfg.doorHeight ?? 3.0,
     doorThickness: cfg.doorThickness ?? 0.08,
+    carpetWidth: cfg.carpetWidth ?? 1.6,
+    carpetOffsetY: cfg.carpetOffsetY ?? 0.01,
   };
 
   const Wc = params.corridorWidth;
@@ -97,6 +99,7 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
   // - Origem (0,0,0) no plano da porta.
 
   const floor = makeMesh();
+  const carpet = makeMesh();
   const ceiling = makeMesh();
   const walls = makeMesh();
   const door = makeMesh();
@@ -104,6 +107,11 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
   // Piso
   addFloor(floor, -Wc / 2, Wc / 2, 0, Lc, 0);
   addFloor(floor, -S / 2, S / 2, Lc, Lc + S, 0);
+
+  // Tapete vermelho: do começo do passeio até a entrada da sala (z = Lc)
+  // Fica levemente acima do piso para não "brigar" no depth.
+  const cw = Math.min(params.carpetWidth, Wc - 0.4);
+  addFloor(carpet, -cw / 2, cw / 2, 0, Lc, params.carpetOffsetY);
 
   // Teto
   addCeiling(ceiling, -Wc / 2, Wc / 2, 0, Lc, H);
@@ -140,6 +148,7 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
 
   const meshes = {
     floor: finalizeMesh(floor),
+    carpet: finalizeMesh(carpet),
     ceiling: finalizeMesh(ceiling),
     walls: finalizeMesh(walls),
     door: finalizeMesh(door),
