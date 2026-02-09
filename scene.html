@@ -8,6 +8,7 @@
     canvas { display: block; }
   </style>
 </head>
+
 <body>
   <canvas id="glCanvas"></canvas>
   <script type="module" src="src/main.js"></script>
@@ -34,3 +35,53 @@
 
 </body>
 </html>
+
+<style>
+    #poster-ui {
+        position: absolute;
+        bottom: 10%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 15, 15, 0.9); /* Mais escuro e opaco */
+        color: #e6d3a3;
+        padding: 30px;
+        border-radius: 2px; /* Cantos retos parecem mais medievais */
+        font-family: 'Cinzel', serif; /* Mesma fonte do menu */
+        display: none;
+        pointer-events: none;
+        
+        /* Borda dupla luxuosa */
+        border: 1px solid #daa520;
+        outline: 4px solid rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(218, 165, 32, 0.2);
+        
+        max-width: 450px;
+        text-align: center;
+        transition: opacity 0.5s ease-in-out;
+        z-index: 100;
+    }
+
+    #poster-ui::before {
+        content: "◈"; /* Detalhe decorativo */
+        display: block;
+        color: #daa520;
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+    }
+
+    #poster-title {
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin: 0 0 15px 0;
+        font-weight: 900;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    #poster-text {
+        font-family: 'Cinzel', serif;
+        font-size: 1.1rem;
+        line-height: 1.5;
+        font-style: italic;
+        color: #cccccc;
+    }
+</style>

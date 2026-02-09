@@ -251,7 +251,7 @@ export function createVAO(gl, mesh) {
  */
 // No final do scenario.js
 
-export function loadTexture(gl, url) {
+export function loadTexture(gl, url, flipY = true) {
   const texture = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -265,7 +265,7 @@ export function loadTexture(gl, url) {
     
     // --- A CORREÇÃO MÁGICA AQUI ---
     // Diz ao WebGL para inverter o eixo Y da imagem ao desembalar
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); 
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY); 
     // ------------------------------
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);

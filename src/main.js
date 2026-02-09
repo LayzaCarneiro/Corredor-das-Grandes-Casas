@@ -96,7 +96,7 @@ let posterVao = null;
 async function setupPosters() {
   // Carrega todas as texturas e guarda no array
   // O .map cria um novo array com o resultado de loadTexture para cada caminho
-  posterTextures = posterImagePaths.map(path => loadTexture(gl, path));
+  posterTextures = posterImagePaths.map(path => loadTexture(gl, path, true));
 
   const mesh = createPosterMesh();
   posterVao = createVAO(gl, mesh);
@@ -109,44 +109,92 @@ const postersConfig = [
   { 
     x: -2.45, y: 1.8, z: 4.0, rotateY: Math.PI / 2, texIndex: 0,
     title: "Casa Stark",
-    info: "'O Inverno está Chegando'. Os protetores do Norte e senhores de Winterfell."
+    info: `
+      Lema: "O Inverno Está Chegando"
+      Senhores de Winterfell, protetores do Norte.
+      Membros notáveis: Eddard, Arya, Jon Snow.
+      Curiosidade: Cada filho tem um lobo gigante correspondente.
+      Evento icônico: Participaram da Rebelião de Robert e da Guerra dos Cinco Reis.
+    `
   },
   { 
     x: -2.45, y: 1.8, z: 9.0, rotateY: Math.PI / 2, texIndex: 1,
     title: "Casa Lannister",
-    info: "'Ouça-me Rugir'. Conhecidos por sua imensa riqueza e pelas minas de Rochedo Casterly."
+    info: `
+      Lema: "Ouça-me Rugir"
+      Rica e influente, controlam as minas de ouro de Rochedo Casterly.
+      Membros notáveis: Tywin, Cersei, Jaime, Tyrion.
+      Curiosidade: Famosos por riqueza e astúcia política.
+      Evento icônico: Guerra dos Cinco Reis e manipulação da política em Porto Real.
+    `
   },
   { 
     x: -2.45, y: 1.8, z: 14.0, rotateY: Math.PI / 2, texIndex: 4,
     title: "Casa Tyrell",
-    info: "'Crescendo Fortes'. Senhores da Campina, sua sede é o castelo de Jardim de Cima."
+    info: `
+      Lema: "Crescendo Fortes"
+      Senhores da Campina, sua sede é o castelo Jardim de Cima.
+      Membros notáveis: Mace, Olenna, Loras Tyrell.
+      Curiosidade: Conhecidos por intrigas e alianças estratégicas.
+      Evento icônico: Apoiaram a coroação de Joffrey Baratheon e participaram da batalha de Porto Real.
+    `
   },
   { 
     x: -2.45, y: 1.8, z: 19.0, rotateY: Math.PI / 2, texIndex: 5,
     title: "Casa Arryn",
-    info: "'Tão Alto como a Honra'. Protetores do Vale, vivem no impenetrável Ninho da Águia."
+    info: `
+      Lema: "Tão Alto como a Honra"
+      Protetores do Vale, vivem no impenetrável Ninho da Águia.
+      Membros notáveis: Jon Arryn, Lysa, Robin.
+      Curiosidade: Casa isolada e quase intocável devido à geografia.
+      Evento icônico: A morte de Jon Arryn desencadeou os eventos da Guerra dos Cinco Reis.
+    `
   },
 
   // --- PAREDE DIREITA (x: 2.45) ---
   { 
     x: 2.45, y: 1.8, z: 6.5, rotateY: -Math.PI / 2, texIndex: 2,
     title: "Casa Baratheon",
-    info: "'Nossa é a Fúria'. A linhagem que conquistou o Trono de Ferro após a rebelião."
+    info: `
+      Lema: "Nossa é a Fúria"
+      Conquistaram o Trono de Ferro após a Rebelião de Robert.
+      Membros notáveis: Robert, Stannis, Renly.
+      Curiosidade: Conhecidos pela força e temperamento explosivo.
+      Evento icônico: Rebelião de Robert e guerra civil subsequente.
+    `
   },
   { 
     x: 2.45, y: 1.8, z: 11.5, rotateY: -Math.PI / 2, texIndex: 3,
     title: "Casa Targaryen",
-    info: "'Fogo e Sangue'. Os últimos Senhores dos Dragões da antiga Valíria."
+    info: `
+      Lema: "Fogo e Sangue"
+      Últimos senhores dos dragões da antiga Valíria.
+      Membros notáveis: Aerys II, Daenerys, Viserys.
+      Curiosidade: Sua linhagem é conhecida pelos cabelos platinados e olhos violeta.
+      Evento icônico: Queda do Trono de Ferro e a guerra pelo retorno de Daenerys.
+    `
   },
   { 
     x: 2.45, y: 1.8, z: 16.5, rotateY: -Math.PI / 2, texIndex: 6,
     title: "Casa Greyjoy",
-    info: "'Nós Não Semeamos'. Senhores das Ilhas de Ferro, mestres dos mares e navios."
+    info: `
+      Lema: "Nós Não Semeamos"
+      Senhores das Ilhas de Ferro, mestres dos mares e navios.
+      Membros notáveis: Balon, Theon, Yara Greyjoy.
+      Curiosidade: Seguidores do Deus Afogado e cultura marítima isolada.
+      Evento icônico: Rebelião Greyjoy e invasões ao continente.
+    `
   },
   { 
     x: 2.45, y: 1.8, z: 21.5, rotateY: -Math.PI / 2, texIndex: 7,
     title: "Casa Martell",
-    info: "'Insubmissos, Não Curvados, Não Quebrados'. Senhores de Dorne, nunca conquistados por Aegon."
+    info: `
+      Lema: "Insubmissos, Não Curvados, Não Quebrados"
+      Senhores de Dorne, nunca conquistados por Aegon.
+      Membros notáveis: Doran, Oberyn, Ellaria Martell.
+      Curiosidade: Cultura distinta e costumes de Dorne mais tolerantes.
+      Evento icônico: Conflitos com Lannisters e busca por vingança de Oberyn.
+    `
   },
 ];
 
@@ -232,7 +280,7 @@ async function loadIronThrone() {
       },
       useTexture: true,
     };
-    ironThroneTexture = loadTexture(gl, 'models/IronThrone_Diff.vtf.png');
+    ironThroneTexture = loadTexture(gl, 'models/IronThrone_Diff.vtf.png', false);
 
     // Calcula AABB de colisão em XZ com base no OBJ (no espaço local) e aplica o mesmo
     // transform usado no render (escala + rotação 180° via escala negativa + translação).
@@ -263,7 +311,7 @@ async function loadSword() {
       },
       useTexture: true,
     };
-    swordTexture = loadTexture(gl, 'models/espada.jpg');
+    swordTexture = loadTexture(gl, 'models/espada.jpg', false);
     console.log('Espada carregada com sucesso');
   } catch (error) {
     console.error('Erro ao carregar espada:', error);
