@@ -23,7 +23,7 @@ export function createWorld(gl) {
     { 
       name: 'floor', 
       vao: createVAO(gl, scenario.meshes.floor), 
-      material: { baseColor:[0.35,0.18,0.08], ka:0.35, kd:0.75, ks:0.08, shininess:12 }, 
+      material: { baseColor:[0.25, 0.12, 0.06], ka:0.35, kd:0.75, ks:0.08, shininess:12 }, 
       useTexture:false 
     },
     { 
@@ -34,13 +34,13 @@ export function createWorld(gl) {
     { 
       name: 'walls', 
       vao: createVAO(gl, scenario.meshes.walls), 
-      material: { baseColor:[0.45,0.45,0.48], ka:0.25, kd:0.7, ks:0.15, shininess:22 }, 
+      material: { baseColor:[0.45,0.45,0.45], ka:0.25, kd:0.7, ks:0.15, shininess:22 }, 
       useTexture:false 
     },
     { 
       name: 'ceiling', 
       vao: createVAO(gl, scenario.meshes.ceiling), 
-      material: { baseColor:[0.08,0.08,0.22], ka:0.35, kd:0.6, ks:0.12, shininess:18 }, 
+      material: { baseColor:[0.30, 0.30, 0.30], ka:0.35, kd:0.6, ks:0.12, shininess:18 }, 
       useTexture:false 
     },
     { 

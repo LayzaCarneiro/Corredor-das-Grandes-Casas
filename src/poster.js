@@ -71,7 +71,7 @@ export function renderPosters(gl, locs, view, projection) {
 
 /**
  * updatePosterUI(cameraPos, uiElement, uiTitle, uiText, threshold)
- * Atualiza a UI com título e informações do pôster mais próximo da câmera.
+ * Atualiza a UI com título, informações e cores do pôster mais próximo da câmera.
  */
 export function updatePosterUI(cameraPos, uiElement, uiTitle, uiText, threshold = 2.0) {
   let closest = null;
@@ -93,6 +93,13 @@ export function updatePosterUI(cameraPos, uiElement, uiTitle, uiText, threshold 
     uiTitle.innerText = closest.title;
     uiText.innerText = closest.info;
     uiElement.style.display = "block";
+
+    // Atualiza cores
+    if (closest.uiColor) uiElement.style.background = closest.uiColor;
+    if (closest.textColor) {
+      uiTitle.style.color = closest.textColor;
+      uiText.style.color = closest.textColor;
+    }
   } else {
     uiElement.style.display = "none";
   }
