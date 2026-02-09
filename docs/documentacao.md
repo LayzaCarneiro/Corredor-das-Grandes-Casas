@@ -50,6 +50,49 @@ O loop de execução acontece em `src/main.js` com `requestAnimationFrame(render
 - Mouse: altera `yaw` e `pitch`.
 - Teclado: `WASD` move no plano XZ.
 
+### 2.4 Como Rodar (servidor local)
+
+Como o projeto usa **ES Modules** (`<script type="module">`) e carrega arquivos via URL, rode sempre com um **servidor HTTP local** (não abrir via `file://`).
+
+Depois de iniciar um servidor na pasta raiz do projeto, acesse:
+
+- `http://localhost:8000/` (fluxo completo: `index.html` → `intro.html` → `scene.html`)
+- ou direto: `http://localhost:8000/scene.html`
+
+#### Usando Python 3
+
+```bash
+cd virtual_tour
+python3 -m http.server 8000
+```
+
+> Em muitos sistemas, `python -m http.server 8000` também funciona (se `python` apontar para Python 3).
+
+#### Usando Python 2 (legado)
+
+```bash
+cd virtual_tour
+python -m SimpleHTTPServer 8000
+```
+
+> Esse comando só existe no Python 2.
+
+#### Usando JavaScript/Node.js
+
+```bash
+cd virtual_tour
+npx http-server -p 8000
+```
+
+> Na primeira vez, o `npx` pode baixar o `http-server`.
+
+#### Usando PHP
+
+```bash
+cd virtual_tour
+php -S localhost:8000
+```
+
 ---
 
 ## 3. Módulo de Matemática (`src/math.js`)
