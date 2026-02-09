@@ -14,6 +14,13 @@ export class Camera {
     this.collisionFn = opts.collisionFn ?? null;
     this.radius = opts.radius ?? 0.35;
 
+    // Direção do último movimento no plano XZ (para luz/efeitos)
+    // Começa alinhada ao yaw inicial.
+    {
+      const yawRad = this.yaw * Math.PI / 180;
+      this.lastMoveDir = [Math.cos(yawRad), 0, Math.sin(yawRad)];
+    }
+
     window.addEventListener("keydown", e => this.keys[e.key.toLowerCase()] = true);
     window.addEventListener("keyup", e => this.keys[e.key.toLowerCase()] = false);
     canvas.addEventListener("click", () => canvas.requestPointerLock());
@@ -43,6 +50,12 @@ export class Camera {
     if (this.keys["d"]) { dx += right[0] * step; dz += right[2] * step; }
 
     if (dx === 0 && dz === 0) return;
+
+    // Atualiza direção de caminhada (normalizada no XZ)
+    {
+      const len = Math.hypot(dx, dz) || 1;
+      this.lastMoveDir = [dx / len, 0, dz / len];
+    }
 
     const [x, y, z] = this.position;
 

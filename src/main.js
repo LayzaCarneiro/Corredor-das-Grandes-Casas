@@ -7,8 +7,9 @@ import {
   setPhongCamera,
   setPhongAmbient,
   setPhongMaterial,
-  setPhongPointLight,
   setPhongDirectionalLight,
+  setPhongPointLight,
+  setPhongSpotLight,
   normalMatrixFromMat4,
 } from './phong.js';
 import { createCorridorRoomScenario, createVAO } from './scenario.js';
@@ -86,14 +87,9 @@ const IDENTITY_MODEL = new Float32Array([
 gl.enable(gl.DEPTH_TEST);
 gl.clearColor(0.1, 0.1, 0.1, 1.0);
 
-function getMovingLightPosition(timeMs) {
-  const t = timeMs * 0.001;
-  // Passeia do corredor para a sala e oscila em X
-  const zBase = 2 + (Math.sin(t * 0.35) * 0.5 + 0.5) * (scenario.params.corridorLength + scenario.params.roomSize - 4);
-  const x = Math.sin(t * 0.9) * 2.0;
-  const y = scenario.params.wallHeight - 0.6;
-  return [x, y, zBase];
-}
+// FOV mais confortável para FPS/corredor
+const FOV_DEG = 75;
+const FOV_RAD = (FOV_DEG * Math.PI) / 180;
 
 let lastTime = 0;
 function render(time = 0) {
@@ -102,7 +98,7 @@ function render(time = 0) {
   camera.updatePosition(dt);
 
   const projection = perspective(
-    Math.PI / 4,
+    FOV_RAD,
     canvas.width / canvas.height,
     0.1,
     800
@@ -112,18 +108,32 @@ function render(time = 0) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // Limpa o frame
 
   const view = camera.getViewMatrix();
-  const lightPos = getMovingLightPosition(time);
+  // Luz na "cabeça" do personagem (campo de luz ao redor, curto alcance)
+  const headLightPos = [
+    camera.position[0],
+    camera.position[1] + 0.10,
+    camera.position[2],
+  ];
 
-  setPhongAmbient(gl, locs, [0.10, 0.10, 0.12]);
+  // Um pouco mais de ambiente pra não ficar "preto" longe, sem lavar o cenário
+  setPhongAmbient(gl, locs, [0.03, 0.03, 0.035]);
   setPhongCamera(gl, locs, camera.position);
+
+  // Sem luz direcional (evita iluminar o cenário inteiro sem atenuação)
   setPhongDirectionalLight(gl, locs, { enabled: false });
+
+  // Luz pontual na cabeça: ilumina em 360º perto do jogador, mas cai rápido.
   setPhongPointLight(gl, locs, {
-    position: lightPos,
-    color: [1.0, 0.95, 0.85],
-    intensity: 1.5,
-    attenuation: [1.0, 0.08, 0.02],
     enabled: true,
+    position: headLightPos,
+    color: [1.0, 0.98, 0.92],
+    intensity: 3.8,
+    // Alcance curto/médio: ilumina perto do jogador e cai rápido
+    attenuation: [1.0, 0.35, 0.25],
   });
+
+  // Garante que o spotlight não influencie (se estava ligado antes)
+  setPhongSpotLight(gl, locs, { enabled: false });
 
   // Matrizes comuns (model = identidade)
   setPhongMatrices(gl, locs, {
