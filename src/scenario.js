@@ -1,3 +1,7 @@
+/**
+ * scenario.js - Construtor de Geometria e Lógica Espacial
+ */
+
 // Cenário corredor → sala (quadrada), sem libs externas.
 // Gera geometria (posições+normais) e fornece função de colisão em XZ.
 
@@ -7,7 +11,7 @@ function pushTri(pos, nor, a, b, c, n) {
 }
 
 function pushQuad(pos, nor, a, b, c, d, n) {
-  // a-b-c e a-c-d
+// Triângulo 1: a-b-c | Triângulo 2: a-c-d
   pushTri(pos, nor, a, b, c, n);
   pushTri(pos, nor, a, c, d, n);
 }
@@ -22,6 +26,8 @@ function finalizeMesh(mesh) {
   mesh.normals = new Float32Array(mesh.normals);
   return mesh;
 }
+
+// --- Funções de Construção de Primitivas ---
 
 function addFloor(mesh, x0, x1, z0, z1, y) {
   // Visto de cima (normal +Y)
@@ -74,6 +80,8 @@ function addWallZ(mesh, z, x0, x1, y0, y1, normalZ) {
     pushQuad(mesh.positions, mesh.normals, a, d, c, b, n);
   }
 }
+
+// --- Gerador do Cenário Principal ---
 
 export function createCorridorRoomScenario(gl, cfg = {}) {
   const params = {
@@ -182,11 +190,19 @@ export function createCorridorRoomScenario(gl, cfg = {}) {
   return { params, meshes, checkCollision };
 }
 
+/**
+ * Cria a geometria de um plano vertical (Pôster) de 1x1 unidade.
+ * O plano é construído no plano XY (z=0), voltado para o eixo +Z.
+ */
 export function createPosterMesh() {
+  // Como são dois triângulos para formar um quadrado, temos 6 pontos.
   const positions = new Float32Array([
+    // Triângulo 1 (Sentido anti-horário)
     -0.5, -0.5,  0.0,  // Inferior Esquerda
      0.5, -0.5,  0.0,  // Inferior Direita
      0.5,  0.5,  0.0,  // Superior Direita
+
+     // Triângulo 2 (Sentido anti-horário)
     -0.5, -0.5,  0.0,  // Inferior Esquerda
      0.5,  0.5,  0.0,  // Superior Direita
     -0.5,  0.5,  0.0,  // Superior Esquerda
@@ -206,9 +222,11 @@ export function createPosterMesh() {
     positions, 
     normals, 
     texCoords, 
-    vertexCount: 6 // ESSENCIAL: sem isso o drawArrays desenha zero
+    vertexCount: 6 // Informa ao WebGL quantos vértices devem ser desenhados
   };
 }
+
+// --- Funções de Carregamento de Recursos ---
 
 export function createVAO(gl, mesh) {
   const vao = gl.createVertexArray();

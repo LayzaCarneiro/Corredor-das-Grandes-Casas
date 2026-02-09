@@ -1,5 +1,11 @@
+/**
+ * phong.js - Motor de Iluminação
+ * Implementa o modelo Blinn-Phong com suporte a 3 tipos de luzes.
+ */
+
 import { createProgram } from './shaders.js';
 
+// Vertex Shader: Processa a geometria e prepara os dados para o fragmento
 export const phongVsSource = `#version 300 es
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
@@ -18,6 +24,7 @@ void main() {
     vec4 worldPos = uModel * vec4(aPosition, 1.0);
     vWorldPos = worldPos.xyz;
 
+    // Transforma a normal para o espaço do mundo usando a Normal Matrix
     vWorldNormal = normalize(uNormalMatrix * aNormal);
     vTexCoord = aTexCoord;
 
@@ -25,13 +32,13 @@ void main() {
 }
 `;
 
+// Fragment Shader: Calcula a cor final pixel a pixel
 export const phongFsSource = `#version 300 es
 precision highp float;
 
 out vec4 fragColor;
 
-in vec3 vWorldPos;
-in vec3 vWorldNormal;
+in vec3 vWorldPos, vWorldNormal;
 in vec2 vTexCoord;
 
 uniform vec3 uCameraPos;
@@ -53,6 +60,7 @@ uniform int uUseTexture;
 // Variável global para armazenar a cor base (com ou sem textura)
 vec3 g_baseColor;
 
+// Estruturas de Luz
 struct DirectionalLight {
     vec3 direction; // direção PARA ONDE a luz aponta (mundo)
     vec3 color;
@@ -83,6 +91,8 @@ uniform DirectionalLight uDirLight;
 uniform PointLight uPointLight;
 uniform SpotLight uSpotLight;
 
+
+// Cálculo da Luz Pontual (Tochas fixas nas paredes)
 vec3 applyDirectionalLight(vec3 n, vec3 v) {
     if (uDirLight.enabled == 0) return vec3(0.0);
 
@@ -99,6 +109,8 @@ vec3 applyDirectionalLight(vec3 n, vec3 v) {
     return diffuse + specular;
 }
 
+
+// Cálculo da Spot Light (Lanterna do jogador/foco no Trono)
 vec3 applyPointLight(vec3 n, vec3 v) {
     if (uPointLight.enabled == 0) return vec3(0.0);
 

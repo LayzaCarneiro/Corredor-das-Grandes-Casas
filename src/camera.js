@@ -124,8 +124,7 @@ export class Camera {
     const right = normalize(cross(front, [0, 1, 0]));
     const up = cross(right, front);
 
-    // Matriz de visualização (LookAt integrada)
-    // Inverte a rotação e translação para simular o movimento da cena ao redor da câmera
+    
     return new Float32Array([
       right[0], up[0], -front[0], 0,
       right[1], up[1], -front[1], 0,

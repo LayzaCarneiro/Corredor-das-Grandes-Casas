@@ -1,6 +1,7 @@
 /**
  * Leitor de arquivos OBJ implementado do zero
  * Suporta vértices (v), normais (vn), coordenadas de textura (vt) e faces (f)
+ * obj.js - Parser robusto para modelos 3D Wavefront (.obj)
  */
 
 export class OBJLoader {
@@ -102,7 +103,7 @@ export class OBJLoader {
       });
     }
 
-    // Triangula faces com mais de 3 vértices (fan triangulation)
+    // Triangulação (Fan Method) - Essencial para modelos complexos
     if (face.length === 3) {
       this.faces.push(face);
     } else if (face.length > 3) {
