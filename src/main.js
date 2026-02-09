@@ -1,3 +1,4 @@
+// --- IMPORTS ---
 import { perspective } from './math.js';
 import { Camera } from './camera.js';
 import {
@@ -38,12 +39,12 @@ gl.useProgram(program);
 // --- CRIAÇÃO DO MUNDO ---
 const { scenario, parts } = createWorld(gl);
 
-// Pegar referências do HTML
+// --- REFERÊNCIAS HTML PARA PÔSTERES ---
 const uiElement = document.getElementById("poster-ui");
 const uiTitle = document.getElementById("poster-title");
 const uiText = document.getElementById("poster-text");
 
-// Configurar áudio de fundo
+// --- ÁUDIO DE FUNDO ---
 const backgroundAudio = new Audio('audio/YTDown.com_YouTube_Game-of-Thrones-Tema-de-Abertura-Oppenin_Media_8wYhc8xpBkc_001_1080p.mp4');
 backgroundAudio.loop = true;
 backgroundAudio.volume = 0.3;
@@ -53,8 +54,10 @@ document.addEventListener('click', () => {
   backgroundAudio.play().catch(e => console.log('Erro ao reproduzir áudio:', e));
 }, { once: true });
 
+// --- CÂMERA ---
 const camera = new Camera(canvas, {
   position: [0, 1.6, 1.5],
+  // Checa colisões com cenário e com o trono
   collisionFn: (x, z, radius) => {
     if (scenario.checkCollision(x, z, radius)) return true;
     if (circleIntersectsAabbXZ(x, z, radius)) return true;
@@ -103,7 +106,7 @@ function render(time = 0) {
     camera.position[2],
   ];
 
-  // Um pouco mais de ambiente pra não ficar "preto" longe, sem lavar o cenário
+  // --- CONFIGURAÇÃO DE LUZES ---
   setPhongAmbient(gl, locs, [0.03, 0.03, 0.035]);
   setPhongCamera(gl, locs, camera.position);
 
@@ -123,7 +126,7 @@ function render(time = 0) {
   // Garante que o spotlight não influencie (se estava ligado antes)
   setPhongSpotLight(gl, locs, { enabled: false });
 
-  // Matrizes comuns (model = identidade)
+  // --- MATRIZES COMUNS (MODEL = IDENTIDADE) ---
   setPhongMatrices(gl, locs, {
     model: IDENTITY_MODEL,
     view,
@@ -131,6 +134,7 @@ function render(time = 0) {
     normalMatrix: normalMatrixFromMat4(IDENTITY_MODEL),
   });
 
+  // --- DESENHAR CENÁRIO ---
   for (const part of parts) {
     setPhongMaterial(gl, locs, part.material);
     gl.uniform1i(locs.uUseTexture, 0); // Sem textura para partes do cenário
@@ -142,10 +146,10 @@ function render(time = 0) {
   renderPosters(gl, locs, view, projection);
   updatePosterUI(camera.position, uiElement, uiTitle, uiText);
 
-  // Desenhar trono de ferro no final da sala
+  // --- DESENHAR TRONO ---
   renderIronThrone(gl, locs, scenario, view, projection);
 
-  // Desenhar espada em primeira pessoa (travada na visão)
+  // --- DESENHAR ESPADA (1ª PESSOA) ---
   renderSword(gl, locs, camera, time, projection);
 
   gl.bindVertexArray(null);
@@ -153,6 +157,7 @@ function render(time = 0) {
   requestAnimationFrame(render);
 }
 
+// --- FUNÇÃO PRINCIPAL ---
 async function main() {
   await setupPosters(gl);
   await loadIronThrone(gl, scenario);
